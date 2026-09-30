@@ -6,33 +6,33 @@
 flowchart TD
 
 subgraph ACTORES["ACTORES"]
-Usuario["Usuario externo"]
-Mesa["Mesa de Partes"]
-Responsable["Responsable de Área"]
-Jefe["Jefe de Área"]
-Admin["Administrador"]
-Director["Director"]
+    Usuario["Usuario externo"]
+    Mesa["Mesa de Partes"]
+    Responsable["Responsable de Área"]
+    Jefe["Jefe de Área"]
+    Admin["Administrador"]
+    Director["Director"]
 end
 
 subgraph PRESENTACION["PRESENTACIÓN"]
-Web["Portal Web"]
-API["API / Servicios"]
+    Web["Portal Web"]
+    API["API / Servicios"]
 end
 
 subgraph NEGOCIO["LÓGICA DE NEGOCIO"]
-Auth["Autenticación y autorización"]
-Usuarios["Gestión de usuarios"]
-Tramites["Gestión de trámites"]
-Expedientes["Gestión de expedientes"]
-Documentos["Gestión de documentos"]
-Notificaciones["Notificaciones"]
-Reportes["Reportes y estadísticas"]
+    Auth["Autenticación y autorización"]
+    Usuarios["Gestión de usuarios"]
+    Tramites["Gestión de trámites"]
+    Expedientes["Gestión de expedientes"]
+    Documentos["Gestión de documentos"]
+    Notificaciones["Notificaciones"]
+    Reportes["Reportes y estadísticas"]
 end
 
 subgraph DATOS["DATOS"]
-BD["Base de datos"]
-Archivos["Almacenamiento de documentos"]
-Auditoria["Historial y auditoría"]
+    BD["Base de datos"]
+    Archivos["Almacenamiento de documentos"]
+    Auditoria["Historial y auditoría"]
 end
 
 Usuario --> Web
@@ -43,6 +43,7 @@ Admin --> Web
 Director --> Web
 
 Web --> API
+
 API --> Auth
 API --> Usuarios
 API --> Tramites
@@ -63,37 +64,39 @@ Reportes --> BD
 Expedientes --> Documentos
 Expedientes --> Notificaciones
 Expedientes --> Reportes
+```
 
 ## Arquitectura en capas
 
 ```text
-┌─────────────────────────────────────────────────────┐
-│                  PRESENTACIÓN                       │
-│                                                     │
-│              Portal Web / Interfaz                 │
-│                    API REST                         │
-└────────────────────────┬────────────────────────────┘
+┌────────────────────────────────────────────────────┐
+│                  PRESENTACIÓN                      │
+│                                                    │
+│              Portal Web / Interfaz                │
+│                    API REST                       │
+└────────────────────────┬───────────────────────────┘
                          ↓
-┌─────────────────────────────────────────────────────┐
-│                LÓGICA DE NEGOCIO                   │
-│                                                     │
-│  Autenticación y autorización                       │
-│  Gestión de usuarios y roles                        │
-│  Gestión de trámites                                │
-│  Gestión de expedientes                             │
-│  Gestión de documentos                              │
-│  Derivación y asignación de expedientes             │
-│  Notificaciones                                     │
-│  Reportes y estadísticas                            │
-└────────────────────────┬────────────────────────────┘
+┌────────────────────────────────────────────────────┐
+│                LÓGICA DE NEGOCIO                  │
+│                                                    │
+│ Autenticación y autorización                       │
+│ Gestión de usuarios y roles                        │
+│ Gestión de trámites                                │
+│ Gestión de expedientes                             │
+│ Gestión de documentos                              │
+│ Derivación y asignación de expedientes             │
+│ Notificaciones                                     │
+│ Reportes y estadísticas                            │
+└────────────────────────┬───────────────────────────┘
                          ↓
-┌─────────────────────────────────────────────────────┐
-│                      DATOS                          │
-│                                                     │
-│              Base de datos                          │
-│              Documentos digitales                   │
-│              Historial y auditoría                  │
-└─────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────┐
+│                      DATOS                         │
+│                                                    │
+│ Base de datos                                      │
+│ Documentos digitales                               │
+│ Historial y auditoría                              │
+└────────────────────────────────────────────────────┘
+```
 
 ## Diagrama final de arquitectura inicial
 
@@ -127,7 +130,7 @@ end
 
 subgraph DATOS["DATOS"]
     BD["Base de datos"]
-    FILES["Almacenamiento de documentos"]
+    ARCHIVOS["Almacenamiento de documentos"]
     AUD["Historial y auditoría"]
 end
 
@@ -157,7 +160,7 @@ AUTH --> BD
 USU --> BD
 TRA --> BD
 EXP --> BD
-DOC --> FILES
+DOC --> ARCHIVOS
 DER --> BD
 NOT --> BD
 REP --> BD
@@ -168,3 +171,4 @@ EXP --> DER
 EXP --> NOT
 
 NOT --> EMAIL
+```
