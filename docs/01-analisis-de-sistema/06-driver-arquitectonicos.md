@@ -9,4 +9,4 @@
 | DA05 | El sistema debe permitir diferentes roles y permisos de usuario. | RF02 / RF21 | Influye en el diseño del control de acceso y separación de responsabilidades. |
 | DA06 | El sistema debe permitir la derivación y asignación de expedientes a diferentes áreas y responsables. | RF10 / RF11 | Influye en la organización de los módulos y en las relaciones entre los componentes de gestión de expedientes. |
 | DA07 | El sistema debe permitir adjuntar y consultar documentos digitales asociados a los expedientes. | RF05 / RF18 | Influye en la gestión y almacenamiento de documentos dentro de la solución. |
-| DA08 | El sistema debe estar preparado para integrarse posteriormente con otros sistemas institucionales. | RNF15 – Interoperabilidad | Influye en la definición de interfaces y mecanismos de integración. |
+| DA08 | El sistema deberá mantener una organización que facilite futuras integraciones institucionales, si se requieren y se aprueban. | RC07 – Alcance del proyecto | Influye en la definición de interfaces y en la organización de los módulos, sin incluir integraciones externas en el alcance actual. |
