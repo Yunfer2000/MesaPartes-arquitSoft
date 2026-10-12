@@ -18,7 +18,7 @@ En C4, un contenedor es una aplicación o un almacén de datos ejecutable; no si
 
 ## 3. Diagrama de contenedores
 
-```mermaid id="zj7f7m"
+```mermaid
 flowchart TB
     U[Usuarios del sistema]
 

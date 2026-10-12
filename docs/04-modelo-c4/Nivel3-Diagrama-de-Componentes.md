@@ -20,7 +20,7 @@ Mostrar los principales componentes internos del backend de Mesa de Partes Virtu
 
 ## 3. Diagrama de componentes
 
-```mermaid id="y6vgpy"
+```mermaid
 flowchart TB
     WEB[Aplicación web] --> CTRL[Controladores API]
 

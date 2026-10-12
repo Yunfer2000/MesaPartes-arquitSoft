@@ -17,7 +17,7 @@ Representar una posible organización interna del código para el caso de uso de
 
 ## 3. Diagrama de código
 
-```mermaid id="zj2p9m"
+```mermaid
 classDiagram
     class Expediente {
         +String id
