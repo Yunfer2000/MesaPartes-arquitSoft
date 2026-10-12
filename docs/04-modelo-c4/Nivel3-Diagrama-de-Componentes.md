@@ -14,7 +14,7 @@ Mostrar los principales componentes internos del backend de Mesa de Partes Virtu
 | Servicio de expedientes | Gestionar la creación, los estados y el seguimiento de expedientes. |
 | Servicio documental | Coordinar el registro y la consulta de documentos. |
 | Servicio de derivaciones | Gestionar la asignación de expedientes a áreas y responsables. |
-| Servicio de notificaciones | Coordinar los avisos relacionados con los trámites. |
+| Servicio de notificaciones | Coordinar los avisos relacionados con los trámites y comunicarse con el proveedor de notificaciones. |
 | Servicio de reportes | Preparar consultas e informes de gestión. |
 | Repositorios | Definir el acceso a los datos almacenados. |
 
