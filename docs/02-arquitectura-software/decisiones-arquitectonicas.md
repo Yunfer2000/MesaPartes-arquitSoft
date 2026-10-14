@@ -70,4 +70,4 @@
 
 **Justificación:** Reduce el acoplamiento con proveedores y facilita futuras ampliaciones.
 
-**Consecuencias:** Las integraciones concretas se implementarán cuando se definan los sistemas externos y sus requisitos.
+**Consecuencias:** El sistema mantendrá interfaces que faciliten futuras integraciones institucionales. Sin embargo, las integraciones con sistemas externos no forman parte del alcance actual del proyecto, conforme a la restricción RC07. Su implementación dependerá de la definición y aprobación de nuevos requisitos.
