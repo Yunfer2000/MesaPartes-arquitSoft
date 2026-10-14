@@ -8,7 +8,7 @@ Definir escenarios que permitan evaluar los atributos de calidad del sistema de 
 
 ### EQ01. Rendimiento
 
-- **Atributo:** Rendimiento.
+- **Atributo:** Rendimiento (AC01).
 - **Fuente:** Usuario externo.
 - **Estímulo:** El usuario consulta el estado de un expediente.
 - **Entorno:** Operación normal del sistema.
@@ -17,7 +17,7 @@ Definir escenarios que permitan evaluar los atributos de calidad del sistema de 
 
 ### EQ02. Seguridad
 
-- **Atributo:** Seguridad.
+- **Atributo:** Seguridad (AC04).
 - **Fuente:** Usuario sin autorización.
 - **Estímulo:** Intenta acceder a un expediente que no tiene permiso para consultar.
 - **Entorno:** Sistema en funcionamiento.
@@ -26,7 +26,7 @@ Definir escenarios que permitan evaluar los atributos de calidad del sistema de 
 
 ### EQ03. Disponibilidad
 
-- **Atributo:** Disponibilidad.
+- **Atributo:** Disponibilidad (AC02).
 - **Fuente:** Usuario institucional.
 - **Estímulo:** Intenta acceder al sistema durante el horario de servicio.
 - **Entorno:** Operación normal, sin mantenimiento programado.
@@ -35,7 +35,7 @@ Definir escenarios que permitan evaluar los atributos de calidad del sistema de 
 
 ### EQ04. Trazabilidad
 
-- **Atributo:** Trazabilidad.
+- **Atributo:** Trazabilidad (AC05).
 - **Fuente:** Personal de Mesa de Partes.
 - **Estímulo:** Deriva un expediente a otra área.
 - **Entorno:** Atención normal de trámites.
@@ -44,7 +44,7 @@ Definir escenarios que permitan evaluar los atributos de calidad del sistema de 
 
 ### EQ05. Usabilidad
 
-- **Atributo:** Usabilidad.
+- **Atributo:** Usabilidad (AC06).
 - **Fuente:** Usuario externo.
 - **Estímulo:** Registra una nueva solicitud.
 - **Entorno:** Uso del portal web.
