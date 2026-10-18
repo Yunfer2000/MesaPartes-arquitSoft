@@ -29,7 +29,6 @@ La solución busca mejorar la trazabilidad de los trámites, facilitar el acceso
 
 ### Arquitectura de software
 - [Arquitectura inicial](docs/02-arquitectura-software/arquitectura-inicial.md)
-- [Decisiones arquitectónicas](docs/02-arquitectura-software/decisiones-arquitectonicas.md)
 - [Estilo arquitectónico](docs/02-arquitectura-software/estilo-arquitectonico.md)
 - [Enfoque arquitectónico: Clean Architecture](docs/02-arquitectura-software/enfoque-arquitectonico.md)
 - [Componentes arquitectónicos](docs/02-arquitectura-software/componentes-arquitectonicos.md)
