@@ -1,12 +1,11 @@
 # Drivers arquitectónicos
 
-| ID | Driver arquitectónico | Origen | ¿Por qué influye en la arquitectura? |
+| ID | Driver | Origen | ¿Por qué influye en la arquitectura? |
 |---|---|---|---|
-| DA01 | El sistema debe soportar múltiples usuarios concurrentes realizando trámites y consultas. | AC03 – Escalabilidad | Influye en la capacidad de crecimiento y en la estrategia de despliegue del sistema. |
-| DA02 | Las operaciones de registro, consulta y seguimiento de expedientes deben responder adecuadamente. | AC01 – Rendimiento | Influye en el procesamiento de solicitudes, comunicación entre componentes y acceso a datos. |
-| DA03 | Los expedientes y documentos deben estar protegidos frente a accesos no autorizados. | AC04 – Seguridad | Influye en la autenticación, autorización, control de acceso y protección de la información. |
-| DA04 | El sistema debe mantener la trazabilidad completa de cada expediente. | AC05 – Trazabilidad / RF23 | Influye en el almacenamiento del historial y registro de las acciones realizadas. |
-| DA05 | El sistema debe permitir diferentes roles y permisos de usuario. | RF02 / RF21 | Influye en el diseño del control de acceso y separación de responsabilidades. |
-| DA06 | El sistema debe permitir la derivación y asignación de expedientes a diferentes áreas y responsables. | RF10 / RF11 | Influye en la organización de los módulos y en las relaciones entre los componentes de gestión de expedientes. |
-| DA07 | El sistema debe permitir adjuntar y consultar documentos digitales asociados a los expedientes. | RF05 / RF18 | Influye en la gestión y almacenamiento de documentos dentro de la solución. |
-| DA08 | El sistema deberá mantener una organización que facilite futuras integraciones institucionales, si se requieren y se aprueban. | RC07 – Alcance del proyecto | Influye en la definición de interfaces y en la organización de los módulos, sin incluir integraciones externas en el alcance actual. |
+| DA01 | Debe funcionar en un hosting compartido institucional, sin colas ni Node.js. | RC03 | Obliga a una sola aplicación PHP con vistas generadas en el servidor. |
+| DA02 | La consulta responde en 3 s o menos. | AC01 | Consultas directas a la base de datos, caché de configuración y rutas en el despliegue. |
+| DA03 | El personal y el público deben estar separados; el login no debe quedar expuesto. | AC04 / RNF17 | Rutas del personal en un subdominio y permisos por rol y por expediente. |
+| DA04 | Trazabilidad completa de cada expediente. | AC05 / RF14 | Cada operación crea un movimiento dentro de una transacción. |
+| DA05 | Dos operadores no deben recepcionar o derivar el mismo expediente a la vez. | AC08 / RNF07 | Bloqueo de fila y revisión del estado dentro de la transacción. |
+| DA06 | Cualquiera debe poder comprobar la autenticidad de una constancia o respuesta. | RF26 | Servicio de verificación con código, QR y huella SHA-256, y una página pública. |
+| DA07 | Equipo de 5 estudiantes que trabaja en paralelo por bloques. | RC06 | Código fácil de entender y cambios en archivos nuevos para evitar conflictos de Git. |

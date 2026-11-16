@@ -1,73 +1,65 @@
 # Decisiones arquitectónicas
 
-## DA-01: Arquitectura de monolito modular
+## DA-01: Monolito en capas
 
-**Contexto:** El sistema debe gestionar usuarios, trámites, expedientes, documentos, derivaciones, notificaciones y reportes.
+**Contexto:** hosting compartido, equipo pequeño y un solo dominio de negocio (trámite documentario).
 
-**Decisión:** Organizar la solución como un monolito modular, separando las responsabilidades en módulos funcionales.
+**Decisión:** una sola aplicación Laravel, organizada en capas: presentación, control, servicios y datos.
 
-**Drivers relacionados:** DA05, DA06, DA07.
+**Drivers:** DA01, DA07.
 
-**Justificación:** Esta organización facilita el desarrollo, despliegue y mantenimiento del sistema sin introducir la complejidad inicial de una arquitectura de microservicios.
+**Justificación:** se instala y mantiene como un solo sistema en el hosting de la DREA; no necesita orquestar servicios ni una API aparte.
 
-**Consecuencias:** Los módulos compartirán el mismo despliegue, pero deberán mantener responsabilidades bien delimitadas.
+**Consecuencias:** todo se despliega junto. La organización es por tipo de archivo (controladores, servicios, modelos), no por módulos.
 
-## DA-02: Separación de responsabilidades mediante Clean Architecture
+## DA-02: Patrón MVC con capa de servicios
 
-**Contexto:** Las reglas de gestión de expedientes deben mantenerse independientes de los detalles de interfaz, almacenamiento y servicios externos.
+**Contexto:** las reglas del trámite (estados, plazos, quién puede operar) no deben quedar repartidas en las pantallas.
 
-**Decisión:** Organizar el diseño en capas de dominio, aplicación, infraestructura y presentación.
+**Decisión:** controladores delgados que validan y llaman a una **capa de servicios**. `FlujoExpediente` tiene un método por caso de uso (presentar, recepcionar, observar, derivar, confirmarRecepcion, responder, registrarPresencial, subsanar).
 
-**Drivers relacionados:** DA02, DA03, DA04, DA06.
+**Drivers:** DA04, DA05, DA07.
 
-**Justificación:** La separación permite mantener las reglas del negocio aisladas de las tecnologías utilizadas y facilita las pruebas y el mantenimiento.
+**Justificación:** la lógica de negocio queda en un solo lugar, se prueba con PHPUnit y corresponde uno a uno con los casos de uso de ICONIX.
 
-**Consecuencias:** Las dependencias deberán dirigirse hacia el dominio; la infraestructura implementará los contratos definidos por las capas internas.
+**Consecuencias:** los servicios usan los modelos Eloquent directamente. Se evaluó Clean Architecture (dominio independiente con repositorios e interfaces) y se dejó como mejora futura, porque para este tamaño añade capas sin un beneficio visible.
 
-## DA-03: Control de acceso basado en roles
+## DA-03: Control de acceso por rol, por expediente y por subdominio
 
-**Contexto:** El sistema contempla usuarios externos, personal de Mesa de Partes, responsables de área, jefes de área y administradores.
+**Decisión:** middleware `VerificarRol` para las secciones de cada rol, `ExpedientePolicy` para decidir si un usuario ve u opera un expediente, y rutas del personal solo en el subdominio (`APP_STAFF_DOMAIN`). El público entra a su expediente con N.° y documento de identidad, guardado en la sesión.
 
-**Decisión:** Aplicar autenticación y autorización según los roles y permisos asignados.
+**Drivers:** DA03.
 
-**Drivers relacionados:** DA03, DA05.
+## DA-04: Trazabilidad e integridad con transacciones
 
-**Justificación:** Permite limitar las operaciones y la consulta de información de acuerdo con las responsabilidades de cada usuario.
+**Decisión:** cada operación de `FlujoExpediente` se ejecuta en una transacción, bloquea la fila del expediente (`lockForUpdate`), revisa el estado y registra un movimiento. Las acciones del Administrador quedan en `registros_auditoria`.
 
-**Consecuencias:** Las operaciones protegidas deberán verificar la identidad y los permisos correspondientes.
+**Drivers:** DA04, DA05.
 
-## DA-04: Trazabilidad de expedientes
+## DA-05: Documentos en almacenamiento privado con huella
 
-**Contexto:** Es necesario conocer el estado de cada expediente y las acciones realizadas durante su atención.
+**Decisión:** los archivos se guardan fuera de la carpeta pública y solo se descargan a través de un controlador que revisa permisos. Al subirlos se calcula su huella SHA-256.
 
-**Decisión:** Mantener un historial de eventos relevantes, incluyendo cambios de estado, derivaciones y acciones de atención.
+**Drivers:** DA03, DA06.
 
-**Drivers relacionados:** DA04, DA06.
+## DA-06: Firma electrónica del sistema
 
-**Justificación:** Facilita el seguimiento de los trámites y la consulta de su historial.
+**Decisión:** servicio `Verificacion` que asigna un código único a cada constancia y respuesta, dibuja el QR y permite comprobar el documento en `/verificar`. Constancias y respuestas se descargan en PDF con DomPDF.
 
-**Consecuencias:** Las operaciones relevantes deberán registrar la información necesaria para reconstruir el recorrido del expediente.
+**Drivers:** DA06.
 
-## DA-05: Gestión centralizada de documentos digitales
+**Consecuencias:** no reemplaza a la firma digital con certificado (Ley 27269), que queda como fase siguiente.
 
-**Contexto:** Los expedientes requieren adjuntar y consultar documentos durante el trámite.
+## DA-07: Vistas generadas en el servidor
 
-**Decisión:** Definir un módulo responsable de registrar los metadatos de los documentos y gestionar su almacenamiento mediante una interfaz independiente.
+**Decisión:** vistas Blade con CSS propio, sin framework de JavaScript ni compilación con npm.
 
-**Drivers relacionados:** DA03, DA07.
+**Drivers:** DA01, DA02, DA07.
 
-**Justificación:** Permite organizar los documentos y separar las reglas del sistema del mecanismo concreto de almacenamiento.
+**Justificación:** funciona en un hosting compartido, carga rápido en celulares y es más simple para el equipo.
 
-**Consecuencias:** Se deberán controlar los permisos de acceso y mantener la relación entre documentos y expedientes.
+## DA-08: Base de datos PostgreSQL
 
-## DA-06: Integraciones mediante contratos
+**Decisión:** PostgreSQL como base de datos de producción; SQLite en memoria para las pruebas automáticas. El acceso es solo mediante Eloquent y migraciones de Laravel, sin SQL propio del motor.
 
-**Contexto:** En el futuro, el sistema podría necesitar comunicarse con otros servicios institucionales.
-
-**Decisión:** Definir interfaces para los servicios externos, de modo que las integraciones puedan incorporarse sin modificar las reglas centrales del negocio.
-
-**Drivers relacionados:** DA02, DA08.
-
-**Justificación:** Reduce el acoplamiento con proveedores y facilita futuras ampliaciones.
-
-**Consecuencias:** El sistema mantendrá interfaces que faciliten futuras integraciones institucionales. Sin embargo, las integraciones con sistemas externos no forman parte del alcance actual del proyecto, conforme a la restricción RC07. Su implementación dependerá de la definición y aprobación de nuevos requisitos.
+**Drivers:** DA01.

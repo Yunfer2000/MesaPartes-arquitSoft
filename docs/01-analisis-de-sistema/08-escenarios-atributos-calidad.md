@@ -1,56 +1,37 @@
 # Escenarios de atributos de calidad
 
-## 1. Objetivo
+## EQ01. Rendimiento
+- **Fuente:** administrado. **Estímulo:** consulta su expediente con N.° y DNI.
+- **Entorno:** operación normal en el hosting.
+- **Respuesta:** muestra estado, área actual y mapa de recorrido.
+- **Medida:** 3 s o menos (RNF04).
 
-Definir escenarios que permitan evaluar los atributos de calidad del sistema de Mesa de Partes Virtual del IESTP Manuel Antonio Hierro Pozo – Ayacucho.
+## EQ02. Seguridad
+- **Fuente:** responsable de un área que no participó en el trámite. **Estímulo:** abre la URL de un expediente o de su respuesta en PDF.
+- **Respuesta:** `ExpedientePolicy` deniega el acceso (403).
+- **Medida:** ninguna petición no autorizada obtiene datos. Lo comprueban las pruebas automáticas (por ejemplo, "otra área no descarga la respuesta").
 
-## 2. Escenarios de calidad
+## EQ03. Disponibilidad
+- **Fuente:** administrado, de noche o en fin de semana. **Estímulo:** presenta un trámite.
+- **Respuesta:** se registra y llega el correo con el número.
+- **Medida:** objetivo de 99,5 % mensual, sujeto al hosting de la DREA.
 
-### EQ01. Rendimiento
+## EQ04. Trazabilidad
+- **Fuente:** operador de Mesa de Partes. **Estímulo:** deriva un expediente con copias.
+- **Respuesta:** se crea el movimiento y las copias, y el mapa de recorrido se actualiza.
+- **Medida:** el 100 % de las derivaciones tiene su movimiento.
 
-- **Atributo:** Rendimiento (AC01).
-- **Fuente:** Usuario externo.
-- **Estímulo:** El usuario consulta el estado de un expediente.
-- **Entorno:** Operación normal del sistema.
-- **Respuesta esperada:** El sistema consulta y presenta el estado del expediente.
-- **Medida de respuesta:** La consulta debe completarse en un máximo de 3 segundos en condiciones normales.
+## EQ05. Integridad ante acciones simultáneas
+- **Fuente:** dos operadores. **Estímulo:** recepcionan el mismo expediente a la vez.
+- **Respuesta:** el primero lo recepciona; el segundo recibe el aviso "otro operador ya lo recepcionó".
+- **Medida:** nunca hay dos recepciones del mismo expediente.
 
-### EQ02. Seguridad
+## EQ06. Autenticidad de documentos
+- **Fuente:** un tercero. **Estímulo:** escanea el QR de una constancia y sube el PDF.
+- **Respuesta:** muestra "Documento auténtico" y si la huella coincide.
+- **Medida:** un archivo cambiado en un solo byte da "No coincide".
 
-- **Atributo:** Seguridad (AC04).
-- **Fuente:** Usuario sin autorización.
-- **Estímulo:** Intenta acceder a un expediente que no tiene permiso para consultar.
-- **Entorno:** Sistema en funcionamiento.
-- **Respuesta esperada:** El sistema deniega el acceso y registra el intento cuando corresponda.
-- **Medida de respuesta:** Ninguna solicitud no autorizada debe obtener información protegida.
-
-### EQ03. Disponibilidad
-
-- **Atributo:** Disponibilidad (AC02).
-- **Fuente:** Usuario institucional.
-- **Estímulo:** Intenta acceder al sistema durante el horario de servicio.
-- **Entorno:** Operación normal, sin mantenimiento programado.
-- **Respuesta esperada:** El sistema permite el acceso y la realización de operaciones autorizadas.
-- **Medida de respuesta:** Disponibilidad objetivo de 99,5 % mensual, pendiente de validación institucional.
-
-### EQ04. Trazabilidad
-
-- **Atributo:** Trazabilidad (AC05).
-- **Fuente:** Personal de Mesa de Partes.
-- **Estímulo:** Deriva un expediente a otra área.
-- **Entorno:** Atención normal de trámites.
-- **Respuesta esperada:** El sistema actualiza la información y registra el evento correspondiente.
-- **Medida de respuesta:** El 100 % de las derivaciones confirmadas debe contar con un registro de historial.
-
-### EQ05. Usabilidad
-
-- **Atributo:** Usabilidad (AC06).
-- **Fuente:** Usuario externo.
-- **Estímulo:** Registra una nueva solicitud.
-- **Entorno:** Uso del portal web.
-- **Respuesta esperada:** El sistema presenta formularios comprensibles y mensajes de validación claros.
-- **Medida de respuesta:** Un usuario de prueba debe poder completar el registro siguiendo las instrucciones de la interfaz.
-
-## 3. Consideraciones
-
-Las medidas indicadas son objetivos iniciales propuestos para orientar el diseño y las pruebas. Deberán validarse con la institución antes de convertirse en criterios definitivos de aceptación.
+## EQ07. Usabilidad
+- **Fuente:** estudiante sin experiencia. **Estímulo:** presenta un trámite desde el celular.
+- **Respuesta:** formulario mínimo con revisión de datos antes de enviar.
+- **Medida:** lo completa sin ayuda.

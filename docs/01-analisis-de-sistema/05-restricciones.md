@@ -2,10 +2,11 @@
 
 | ID | Restricción | Descripción |
 |---|---|---|
-| RC01 | Aplicación web | La solución deberá contemplar un portal web para usuarios y un portal administrativo. |
-| RC02 | Acceso por roles | El acceso a las funcionalidades deberá estar condicionado por los roles y permisos asignados a cada usuario. |
-| RC03 | Seguridad de documentos | Los documentos y expedientes solamente deberán estar disponibles para usuarios autorizados. |
-| RC04 | Trazabilidad | El sistema deberá conservar el historial de las acciones realizadas sobre los expedientes. |
-| RC05 | Disponibilidad | El sistema deberá estar disponible durante las 24 horas, salvo períodos de mantenimiento. |
-| RC06 | Compatibilidad web | El sistema deberá funcionar en navegadores web modernos. |
-| RC07 | Alcance del proyecto | Quedan fuera del alcance la aplicación móvil nativa, firma digital certificada real, integraciones con RENIEC, SUNAT y sistemas externos del MINEDU, OCR, inteligencia artificial para clasificación documental, sistema financiero y videoconferencias. |
+| RC01 | Aplicación web | Portal público sin cuenta y portal del personal en un subdominio aparte. |
+| RC02 | Acceso por roles | Mesa de Partes, Área, Administrador y Dirección General; cada área solo ve sus expedientes. |
+| RC03 | Hosting institucional | Se publica en el hosting y dominio que paga la DREA y administra una empresa externa. Hosting compartido: PHP y PostgreSQL, sin servidores de colas ni Node.js. |
+| RC04 | Tecnología | PHP con Laravel 13, vistas Blade generadas en el servidor y base de datos PostgreSQL. Sin paso de compilación con npm. |
+| RC05 | Metodología | El análisis y diseño siguen ICONIX (curso de Proyección Social). |
+| RC06 | Equipo y plazo | Cinco estudiantes, entrega el 20/12/2026. |
+| RC07 | Protección de datos | Ley 29733: el autocompletado por documento solo devuelve el nombre; correo y celular se muestran ocultos. |
+| RC08 | Alcance | Fuera del alcance: aplicación móvil nativa, firma digital con certificado (Firma Perú, Ley 27269), consulta a RENIEC, pagos en línea, integración con SIGAEST u otros sistemas del MINEDU. |

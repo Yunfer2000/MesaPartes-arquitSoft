@@ -2,7 +2,10 @@
 
 | Actor | Descripción | Interacción principal |
 |---|---|---|
-| Administrador | Usuario encargado de administrar el sistema y gestionar usuarios, roles y permisos. | Gestiona usuarios, roles y permisos. |
-| Administrador de Mesa de Partes | Responsable de la recepción y gestión inicial de los documentos y expedientes. | Registra, valida y deriva expedientes. |
-| Responsable de Área | Personal encargado de atender los expedientes derivados a su área. | Recibe, atiende y actualiza el estado de los expedientes. |
-| Usuario / Administrado | Persona que utiliza la Mesa de Partes Virtual para presentar solicitudes y documentos. | Registra solicitudes, adjunta documentos y consulta el estado de sus trámites. |
+| Administrado | Estudiante, egresado, docente o ciudadano que presenta un trámite. **No tiene cuenta.** | Presenta su trámite (CU05), subsana observaciones (CU06) y consulta el seguimiento (CU07) con su N.° de expediente y su documento de identidad. |
+| Operador de Mesa de Partes | Personal de Mesa de Partes (Área Administrativa). | Recepciona (CU08), observa (CU09), deriva (CU10) y registra los documentos presenciales (CU17). |
+| Responsable de área | Personal a cargo de un área del organigrama (Secretaría Académica, Unidad Académica, programas de estudio, etc.). | Confirma la recepción (CU11), registra avances (CU12), responde (CU13) y deriva a otra área (CU10). |
+| Administrador | Encargado del sistema (distinto del operador de Mesa de Partes). | Gestiona usuarios y roles (CU03), áreas (CU04) y tipos de documento; revisa la auditoría. |
+| Dirección General | Director o directora del instituto. | Consulta reportes (CU15) y el panel de plazos y pendientes (CU18). |
+| Cualquier persona | Quien recibe una constancia o una respuesta impresa o reenviada. | Verifica la autenticidad del documento con el código o el QR (CU19). |
+| Servicio de correo (secundario) | Servidor SMTP del instituto u otro proveedor. | Entrega las notificaciones al administrado (CU16). |
