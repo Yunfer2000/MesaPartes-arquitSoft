@@ -161,8 +161,8 @@ sequenceDiagram
     F->>E: lockForUpdate()
     F->>F: exigirEstado(Recibido, En atención)
     F->>E: crear Movimiento y Copias, estado = Derivado
-    F->>N: notificar(expediente, "derivación")
-    C-->>Op: bandeja con "Expediente derivado"
+    F->>N: notificar(expediente, derivación)
+    C-->>Op: bandeja con Expediente derivado
 ```
 
 ## 8. Criterios de diseño

@@ -87,16 +87,16 @@ sequenceDiagram
     participant F as FlujoExpediente
     participant DB as PostgreSQL
     participant N as Notificador
-    Op->>C: POST /expedientes/{id}/derivar
+    Op->>C: POST derivar
     C->>P: operar()
     C->>F: derivar()
-    F->>DB: BEGIN; SELECT ... FOR UPDATE
+    F->>DB: BEGIN y SELECT FOR UPDATE
     alt estado no permitido o destino inválido
         F-->>C: ReglaNegocio
         C-->>Op: aviso
     else correcto
-        F->>DB: INSERT movimiento y copias; UPDATE estado = Derivado; COMMIT
-        F->>N: notificar("derivación")
+        F->>DB: INSERT movimiento y copias, UPDATE estado Derivado, COMMIT
+        F->>N: notificar(derivación)
         C-->>Op: bandeja con mensaje de éxito
     end
 ```

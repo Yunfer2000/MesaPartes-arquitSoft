@@ -41,7 +41,7 @@ flowchart TB
     DG -->|Consulta reportes y pendientes| SYS
     SYS -->|Envía avisos| MAIL
     MAIL -->|Correo| ADM
-    WEB -->|Enlace "Trámites"| SYS
+    WEB -->|Enlace Trámites| SYS
 ```
 
 ## 5. Alcance
