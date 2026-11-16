@@ -1,174 +1,100 @@
-# Arquitectura inicial del sistema
+# Arquitectura del sistema
+
+Arquitectura del sistema **Mesa de Partes Virtual** tal como está construido (Laravel 13 y PostgreSQL).
 
 ## Diagrama de arquitectura
 
 ```mermaid
 flowchart TD
-
 subgraph ACTORES["ACTORES"]
-    Usuario["Usuario externo"]
-    Mesa["Mesa de Partes"]
-    Responsable["Responsable de Área"]
-    Jefe["Jefe de Área"]
+    Adm["Administrado (sin cuenta)"]
+    Cual["Cualquier persona"]
+    Mesa["Operador de Mesa de Partes"]
+    Resp["Responsable de área"]
     Admin["Administrador"]
-    Director["Director"]
+    Dir["Dirección General"]
 end
 
-subgraph PRESENTACION["PRESENTACIÓN"]
-    Web["Portal Web"]
-    API["API / Servicios"]
+subgraph PRESENTACION["PRESENTACIÓN (vistas Blade)"]
+    Pub["Portal público<br/>dominio principal"]
+    Per["Portal del personal<br/>subdominio"]
 end
 
-subgraph NEGOCIO["LÓGICA DE NEGOCIO"]
-    Auth["Autenticación y autorización"]
-    Usuarios["Gestión de usuarios"]
-    Tramites["Gestión de trámites"]
-    Expedientes["Gestión de expedientes"]
-    Documentos["Gestión de documentos"]
-    Notificaciones["Notificaciones"]
-    Reportes["Reportes y estadísticas"]
+subgraph CONTROL["CONTROL (controladores, middleware y políticas)"]
+    CPub["TramiteExterno · Verificacion · Pdf"]
+    CPer["MesaPartes · Area · Derivacion · Busqueda · Reporte · Pendientes · Admin"]
+    Seg["VerificarRol · ExpedientePolicy · throttle"]
+end
+
+subgraph SERVICIOS["SERVICIOS (lógica de negocio)"]
+    Flujo["FlujoExpediente<br/>un método por caso de uso"]
+    Not["Notificador"]
+    Arch["Archivos"]
+    Ver["Verificacion"]
 end
 
 subgraph DATOS["DATOS"]
-    BD["Base de datos"]
-    Archivos["Almacenamiento de documentos"]
-    Auditoria["Historial y auditoría"]
+    Mod["Modelos Eloquent"]
+    BD[("PostgreSQL")]
+    Disco[("Almacenamiento privado<br/>de archivos")]
 end
 
-Usuario --> Web
-Mesa --> Web
-Responsable --> Web
-Jefe --> Web
-Admin --> Web
-Director --> Web
+SMTP["Servicio de correo (SMTP)"]
 
-Web --> API
+Adm --> Pub
+Cual --> Pub
+Mesa --> Per
+Resp --> Per
+Admin --> Per
+Dir --> Per
 
-API --> Auth
-API --> Usuarios
-API --> Tramites
-API --> Expedientes
-API --> Documentos
-API --> Notificaciones
-API --> Reportes
-
-Auth --> BD
-Usuarios --> BD
-Tramites --> BD
-Expedientes --> BD
-Documentos --> Archivos
-Expedientes --> Auditoria
-Notificaciones --> BD
-Reportes --> BD
-
-Expedientes --> Documentos
-Expedientes --> Notificaciones
-Expedientes --> Reportes
+Pub --> CPub
+Per --> CPer
+CPub --> Seg
+CPer --> Seg
+CPub --> Flujo
+CPer --> Flujo
+CPub --> Ver
+Flujo --> Not
+Flujo --> Arch
+Flujo --> Mod
+Ver --> Mod
+Arch --> Disco
+Mod --> BD
+Not --> SMTP
 ```
 
 ## Arquitectura en capas
 
 ```text
-┌────────────────────────────────────────────────────┐
-│                  PRESENTACIÓN                      │
-│                                                    │
-│              Portal Web / Interfaz                │
-│                    API REST                       │
-└────────────────────────┬───────────────────────────┘
-                         ↓
-┌────────────────────────────────────────────────────┐
-│                LÓGICA DE NEGOCIO                  │
-│                                                    │
-│ Autenticación y autorización                       │
-│ Gestión de usuarios y roles                        │
-│ Gestión de trámites                                │
-│ Gestión de expedientes                             │
-│ Gestión de documentos                              │
-│ Derivación y asignación de expedientes             │
-│ Notificaciones                                     │
-│ Reportes y estadísticas                            │
-└────────────────────────┬───────────────────────────┘
-                         ↓
-┌────────────────────────────────────────────────────┐
-│                      DATOS                         │
-│                                                    │
-│ Base de datos                                      │
-│ Documentos digitales                               │
-│ Historial y auditoría                              │
-└────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│ PRESENTACIÓN                                           │
+│ Vistas Blade + CSS · portal público y del personal     │
+└───────────────────────────┬────────────────────────────┘
+                            ↓
+┌────────────────────────────────────────────────────────┐
+│ CONTROL                                                │
+│ Rutas · Controladores · Validación                     │
+│ Middleware VerificarRol · ExpedientePolicy · throttle  │
+└───────────────────────────┬────────────────────────────┘
+                            ↓
+┌────────────────────────────────────────────────────────┐
+│ SERVICIOS (lógica de negocio)                          │
+│ FlujoExpediente · Notificador · Archivos · Verificacion│
+└───────────────────────────┬────────────────────────────┘
+                            ↓
+┌────────────────────────────────────────────────────────┐
+│ DATOS                                                  │
+│ Modelos Eloquent · Migraciones · PostgreSQL · archivos │
+└────────────────────────────────────────────────────────┘
 ```
 
-## Diagrama final de arquitectura inicial
+Cada capa solo llama a la de abajo. Las vistas no consultan la base de datos por su cuenta: reciben los datos que les pasa el controlador.
 
-```mermaid
-flowchart TD
+## Relación con ICONIX
 
-subgraph ACTORES["ACTORES"]
-    U["Usuario externo"]
-    MP["Mesa de Partes"]
-    RA["Responsable de Área"]
-    JA["Jefe de Área"]
-    AD["Administrador"]
-    DI["Director"]
-end
-
-subgraph PRESENTACION["PRESENTACIÓN"]
-    WEB["Portal Web"]
-    API["API REST"]
-end
-
-subgraph NEGOCIO["LÓGICA DE NEGOCIO"]
-    AUTH["Autenticación y autorización"]
-    USU["Gestión de usuarios y roles"]
-    TRA["Gestión de trámites"]
-    EXP["Gestión de expedientes"]
-    DOC["Gestión de documentos"]
-    DER["Derivación y asignación"]
-    NOT["Notificaciones"]
-    REP["Reportes y estadísticas"]
-end
-
-subgraph DATOS["DATOS"]
-    BD["Base de datos"]
-    ARCHIVOS["Almacenamiento de documentos"]
-    AUD["Historial y auditoría"]
-end
-
-subgraph EXTERNOS["SISTEMAS EXTERNOS"]
-    EMAIL["Servicio de correo electrónico"]
-end
-
-U --> WEB
-MP --> WEB
-RA --> WEB
-JA --> WEB
-AD --> WEB
-DI --> WEB
-
-WEB --> API
-
-API --> AUTH
-API --> USU
-API --> TRA
-API --> EXP
-API --> DOC
-API --> DER
-API --> NOT
-API --> REP
-
-AUTH --> BD
-USU --> BD
-TRA --> BD
-EXP --> BD
-DOC --> ARCHIVOS
-DER --> BD
-NOT --> BD
-REP --> BD
-
-EXP --> AUD
-EXP --> DOC
-EXP --> DER
-EXP --> NOT
-
-NOT --> EMAIL
-```
+| Elemento de robustez (ICONIX) | Dónde está en el código |
+|---|---|
+| Boundary (pantalla) | Vista Blade (`resources/views`) |
+| Control | Controlador + método de `FlujoExpediente` |
+| Entity | Modelo Eloquent (`app/Models`) y su tabla |

@@ -2,61 +2,55 @@
 
 ## 1. Objetivo
 
-Identificar los principales componentes del sistema de Mesa de Partes Virtual del IESTP Manuel Antonio Hierro Pozo – Ayacucho y describir sus responsabilidades e interacciones.
+Identificar los componentes del sistema construido y sus responsabilidades.
 
 ## 2. Componentes principales
 
-| Componente | Responsabilidad |
-|---|---|
-| Presentación web | Proporcionar las interfaces para los distintos usuarios. |
-| Autenticación y usuarios | Gestionar el acceso, los roles y los permisos. |
-| Gestión de trámites | Registrar y consultar solicitudes. |
-| Gestión de expedientes | Crear expedientes y controlar su estado. |
-| Gestión documental | Registrar, adjuntar y consultar documentos. |
-| Derivaciones | Asignar expedientes a áreas y responsables. |
-| Notificaciones | Comunicar cambios relevantes del trámite. |
-| Reportes | Generar consultas e informes de gestión. |
-| Auditoría | Registrar las acciones relevantes realizadas en el sistema. |
-| Persistencia | Guardar y recuperar los datos del sistema. |
+| Componente | Responsabilidad | Clases principales |
+|---|---|---|
+| Portal público | Formulario sin cuenta, consulta, subsanación y verificación. | `TramiteExternoController`, `VerificacionController`, `PdfController` |
+| Acceso del personal | Login en el subdominio, bloqueo tras 5 intentos. | `Auth/SesionController` |
+| Mesa de Partes | Bandeja, recepción, observación, registro presencial. | `MesaPartesController` |
+| Derivaciones | Derivar a un área destino con copias para conocimiento. | `DerivacionController`, `CopiaController` |
+| Atención en áreas | Confirmar recepción, avances y respuesta. | `AreaController` |
+| Flujo del expediente | Reglas de cada caso de uso, estados y movimientos. | `FlujoExpediente`, `ReglaNegocio` |
+| Gestión documental | Guardar y descargar archivos con permisos y huella. | `Archivos`, `DocumentoController` |
+| Firma electrónica del sistema | Códigos, QR, verificación y PDF. | `Verificacion`, `PdfController` |
+| Notificaciones | Correos al administrado. | `Notificador`, `AvisoExpediente` |
+| Plazos y pendientes | Semáforo por días hábiles y panel de pendientes. | `PendientesController`, `config/plazos.php` |
+| Consultas y reportes | Búsqueda, reportes PDF y CSV. | `BusquedaController`, `ReporteController` |
+| Administración | Usuarios, áreas, tipos de documento y auditoría. | `Admin/*Controller`, `RegistroAuditoria` |
+| Seguridad | Roles, permisos por expediente, límites de peticiones y captcha. | `VerificarRol`, `ExpedientePolicy`, `Captcha` |
+| Persistencia | Modelos y tablas. | `app/Models/*`, migraciones, PostgreSQL |
 
 ## 3. Interacción entre componentes
 
-El usuario interactúa con la presentación web. Esta solicita operaciones a la capa de aplicación, que coordina los casos de uso y las reglas del dominio.
-
-Los componentes funcionales utilizan contratos para acceder a las operaciones de persistencia y a los servicios externos. La infraestructura implementa los mecanismos técnicos correspondientes.
-
-Por ejemplo, al registrar una solicitud, el sistema valida la información, registra los documentos asociados y crea el expediente cuando corresponda según las reglas del trámite.
+Los controladores reciben la petición, validan y consultan a Seguridad. Las operaciones que cambian un expediente pasan siempre por Flujo del expediente, que usa Gestión documental para los archivos, Notificaciones para los correos y Persistencia para los datos. La firma electrónica se genera sola al crear constancias y respuestas, y se consulta desde el portal público.
 
 ## 4. Diagrama de componentes
 
 ```mermaid
 flowchart TB
-    U[Usuarios] --> P[Presentación web]
-    P --> A[Aplicación y casos de uso]
-
-    A --> AUTH[Autenticación y usuarios]
-    A --> T[Gestión de trámites]
-    A --> E[Gestión de expedientes]
-    A --> D[Gestión documental]
-    A --> DER[Derivaciones]
-    A --> N[Notificaciones]
-    A --> R[Reportes]
-    A --> AUD[Auditoría]
-
-    AUTH --> PER[Persistencia]
-    T --> PER
-    E --> PER
-    D --> PER
-    DER --> PER
-    N --> PER
-    R --> PER
-    AUD --> PER
-
-    PER --> DB[(Base de datos)]
-    D --> ARC[(Almacenamiento documental)]
-    N --> EXT[Servicio externo futuro]
+    PUB[Portal público] --> FL[Flujo del expediente]
+    PUB --> FI[Firma electrónica del sistema]
+    MP[Mesa de Partes] --> FL
+    DE[Derivaciones] --> FL
+    AT[Atención en áreas] --> FL
+    FL --> GD[Gestión documental]
+    FL --> NO[Notificaciones]
+    FL --> PE[(Persistencia)]
+    FI --> PE
+    GD --> PE
+    PL[Plazos y pendientes] --> PE
+    CR[Consultas y reportes] --> PE
+    AD[Administración] --> PE
+    SEG[Seguridad] -.protege.-> MP
+    SEG -.protege.-> DE
+    SEG -.protege.-> AT
+    SEG -.protege.-> PUB
+    NO --> SMTP[Servicio de correo]
 ```
 
 ## 5. Consideraciones
 
-Los componentes representan una propuesta lógica inicial; no implican que cada uno deba desplegarse como un servicio independiente. La solución mantiene el estilo de monolito modular y el enfoque de Clean Architecture.
+Los componentes son agrupaciones lógicas dentro del monolito en capas; no se despliegan por separado.
