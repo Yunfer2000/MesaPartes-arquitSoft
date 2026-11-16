@@ -10,16 +10,24 @@
 
 ## 2. Descripción del proyecto
 
-El proyecto propone un sistema de Mesa de Partes Virtual para facilitar la recepción, el registro, la derivación, la atención y el seguimiento de documentos y expedientes institucionales.
+Documentación de la arquitectura del sistema **Mesa de Partes Virtual**, ya construido y en funcionamiento, que permite presentar trámites sin cuenta, recepcionarlos, derivarlos entre áreas, atenderlos, seguirlos con un mapa de recorrido y verificar la autenticidad de constancias y respuestas con código y QR.
 
-La solución busca mejorar la trazabilidad de los trámites, facilitar el acceso a la información y reducir el uso de documentos físicos.
+**Resumen de la arquitectura**
+
+| Aspecto | Decisión |
+|---|---|
+| Enfoque | Orientado a objetos, dirigido por casos de uso (ICONIX), con especificaciones por caso de uso (SDD) |
+| Estilo arquitectónico | Monolito en capas |
+| Patrones | MVC + capa de servicios (Service Layer), Policy, Active Record |
+| Tecnología | PHP 8.4+, Laravel 13, vistas Blade, PostgreSQL |
+| Despliegue | Hosting institucional; portal público en el dominio y personal en un subdominio |
 
 ## 3. Documentación del proyecto
 
 ### Análisis del sistema
 - [Caso de negocio](docs/caso-de-negocio.md)
 - [Actores](docs/01-analisis-de-sistema/01-actores.md)
-- [Historias del usuario](docs/01-analisis-de-sistema/02-historias-del-usuario.md)
+- [Historias de usuario](docs/01-analisis-de-sistema/02-historias-del-usuario.md)
 - [Requisitos funcionales](docs/01-analisis-de-sistema/03-requisitos-funcionales.md)
 - [Atributos de calidad](docs/01-analisis-de-sistema/04-atributos-de-calidad.md)
 - [Restricciones](docs/01-analisis-de-sistema/05-restricciones.md)
@@ -28,13 +36,13 @@ La solución busca mejorar la trazabilidad de los trámites, facilitar el acceso
 - [Escenarios de atributos de calidad](docs/01-analisis-de-sistema/08-escenarios-atributos-calidad.md)
 
 ### Arquitectura de software
-- [Arquitectura inicial](docs/02-arquitectura-software/arquitectura-inicial.md)
-- [Estilo arquitectónico](docs/02-arquitectura-software/estilo-arquitectonico.md)
-- [Enfoque arquitectónico: Clean Architecture](docs/02-arquitectura-software/enfoque-arquitectonico.md)
+- [Arquitectura del sistema](docs/02-arquitectura-software/arquitectura-inicial.md)
+- [Estilo arquitectónico: monolito en capas](docs/02-arquitectura-software/estilo-arquitectonico.md)
+- [Enfoque arquitectónico](docs/02-arquitectura-software/enfoque-arquitectonico.md)
 - [Componentes arquitectónicos](docs/02-arquitectura-software/componentes-arquitectonicos.md)
 
 ### Diseño de software
-- [Diseño interno de módulos](docs/03-diseno-de-software/diseno-interno/diseno-interno-de-modulos.md)
+- [Diseño interno](docs/03-diseno-de-software/diseno-interno/diseno-interno-de-modulos.md)
 - [Patrones de diseño](docs/03-diseno-de-software/diseno-interno/patrones-de-diseno.md)
 - [Principios de diseño](docs/03-diseno-de-software/diseno-interno/principios-de-diseno.md)
 
@@ -44,6 +52,9 @@ La solución busca mejorar la trazabilidad de los trámites, facilitar el acceso
 - [Nivel 3: Componentes](docs/04-modelo-c4/Nivel3-Diagrama-de-Componentes.md)
 - [Nivel 4: Código](docs/04-modelo-c4/Nivel4-Diagrama-de-Codigo.md)
 
+### Tecnología
+- [Estructura del código](tecnologia/README.md)
+
 ## 4. Estado del proyecto
 
-La documentación presenta una propuesta inicial de análisis, arquitectura y diseño del sistema. Las decisiones y los diagramas podrán ajustarse conforme se validen los requisitos y avance el proyecto.
+El sistema está construido con pruebas automáticas por caso de uso. Las mejoras futuras evaluadas son: organización en monolito modular, Clean Architecture y firma digital con certificado (Firma Perú).
