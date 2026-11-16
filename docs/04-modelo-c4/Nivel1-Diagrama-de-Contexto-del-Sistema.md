@@ -1,45 +1,49 @@
-# C4 Nivel 1: Diagrama de Contexto del Sistema
+# C4 Nivel 1: Diagrama de contexto del sistema
 
 ## 1. Objetivo
 
-Representar el sistema de Mesa de Partes Virtual y su relación con los usuarios y los sistemas externos.
+Mostrar el sistema Mesa de Partes Virtual, quiénes lo usan y con qué sistemas externos se relaciona.
 
 ## 2. Sistema
 
-**Mesa de Partes Virtual:** sistema propuesto para registrar, derivar, atender y realizar el seguimiento de trámites y expedientes del IESTP Manuel Antonio Hierro Pozo – Ayacucho.
+**Mesa de Partes Virtual:** sistema web del IESTP Manuel Antonio Hierro Pozo para presentar, recepcionar, derivar, atender, seguir y verificar trámites documentarios.
 
-## 3. Actores principales
+## 3. Actores y sistemas externos
 
-- **Usuario externo:** registra solicitudes, adjunta documentos y consulta el estado de sus trámites.
-- **Personal de Mesa de Partes:** recibe y verifica documentos, registra expedientes y realiza derivaciones.
-- **Responsable de área:** recibe expedientes asignados y registra su atención.
-- **Jefe de área:** supervisa la atención de expedientes de su área.
-- **Administrador:** gestiona usuarios, roles y parámetros del sistema.
-- **Director:** consulta reportes e información de gestión.
+- **Administrado:** presenta su trámite sin cuenta y lo consulta con N.° y documento de identidad.
+- **Cualquier persona:** verifica una constancia o respuesta con el código o el QR.
+- **Operador de Mesa de Partes:** recepciona, observa, deriva y registra lo presencial.
+- **Responsable de área:** confirma, atiende y responde.
+- **Administrador:** gestiona usuarios, áreas y tipos de documento.
+- **Dirección General:** revisa reportes y pendientes.
+- **Servicio de correo (externo):** entrega las notificaciones.
+- **Sitio web del instituto (externo):** enlaza al portal desde el menú "Trámites".
 
 ## 4. Diagrama de contexto
 
 ```mermaid
 flowchart TB
-    EXT[Usuario externo]
-    MP[Personal de Mesa de Partes]
+    ADM[Administrado]
+    CUA[Cualquier persona]
+    MP[Operador de Mesa de Partes]
     RA[Responsable de área]
-    JA[Jefe de área]
     AD[Administrador]
-    DI[Director]
+    DG[Dirección General]
+    SYS[Mesa de Partes Virtual<br/>Sistema web Laravel]
+    MAIL[Servicio de correo SMTP]
+    WEB[Sitio web del instituto]
 
-    SYS[Mesa de Partes Virtual<br/>Sistema web para gestionar trámites y expedientes]
-
-    EXT -->|Registra solicitudes y consulta trámites| SYS
-    MP -->|Registra, verifica y deriva expedientes| SYS
-    RA -->|Atiende expedientes asignados| SYS
-    JA -->|Supervisa la atención| SYS
-    AD -->|Administra usuarios y permisos| SYS
-    DI -->|Consulta reportes de gestión| SYS
+    ADM -->|Presenta, subsana y consulta trámites| SYS
+    CUA -->|Verifica documentos| SYS
+    MP -->|Recepciona, observa, deriva, registra presencial| SYS
+    RA -->|Confirma, atiende y responde| SYS
+    AD -->|Administra usuarios y áreas| SYS
+    DG -->|Consulta reportes y pendientes| SYS
+    SYS -->|Envía avisos| MAIL
+    MAIL -->|Correo| ADM
+    WEB -->|Enlace "Trámites"| SYS
 ```
 
 ## 5. Alcance
 
-El sistema comprende el registro de solicitudes, la gestión de expedientes y documentos, las derivaciones, el seguimiento, las notificaciones y los reportes.
-
-Las integraciones con otros sistemas institucionales se consideran futuras y deberán definirse según los requisitos correspondientes.
+Fuera del sistema: RENIEC, pagos, Firma Perú y sistemas del MINEDU.

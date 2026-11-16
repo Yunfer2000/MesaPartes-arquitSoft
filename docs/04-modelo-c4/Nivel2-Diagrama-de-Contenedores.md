@@ -1,50 +1,37 @@
-# C4 Nivel 2: Diagrama de Contenedores
+# C4 Nivel 2: Diagrama de contenedores
 
 ## 1. Objetivo
 
-Representar los principales contenedores tecnológicos del sistema y mostrar cómo se comunican entre sí.
+Mostrar las piezas que se ejecutan en el hosting.
 
-En C4, un contenedor es una aplicación o un almacén de datos ejecutable; no significa necesariamente un contenedor Docker.
+## 2. Contenedores
 
-## 2. Contenedores propuestos
-
-| Contenedor | Responsabilidad |
-|---|---|
-| Aplicación web | Presentar las interfaces para usuarios externos y personal institucional. |
-| Backend / API | Procesar las solicitudes y ejecutar los casos de uso del sistema. |
-| Base de datos | Almacenar usuarios, trámites, expedientes, estados e historial. |
-| Almacenamiento documental | Conservar los archivos adjuntos de los expedientes. |
-| Servicio de notificaciones | Facilitar el envío de avisos sobre cambios en los trámites. |
+| Contenedor | Tecnología | Responsabilidad |
+|---|---|---|
+| Navegador | Chrome, Edge, Firefox (PC o celular) | Muestra el HTML que genera el servidor. |
+| Aplicación web | PHP 8.4+, Laravel 13, Blade | Portal público, portal del personal (subdominio), reglas de negocio y PDF. |
+| Base de datos | PostgreSQL | Expedientes, movimientos, usuarios, áreas, sesiones, caché y auditoría. |
+| Almacenamiento de archivos | Disco privado del servidor (`storage/app/private`) | PDF y ZIP de los trámites, escaneos y respuestas. |
+| Servidor de correo | SMTP externo | Envío de notificaciones. |
 
 ## 3. Diagrama de contenedores
 
 ```mermaid
 flowchart TB
-    U[Usuarios del sistema]
-
-    WEB[Aplicación web<br/>Interfaz de usuario]
-    API[Backend / API<br/>Reglas y casos de uso]
-    DB[(Base de datos<br/>Datos y trazabilidad)]
-    DOC[(Almacenamiento documental<br/>Archivos adjuntos)]
-    NOT[Servicio de notificaciones<br/>Avisos a usuarios]
-
-    U -->|HTTPS| WEB
-    WEB -->|Solicitudes HTTPS| API
-    API -->|Consultas y transacciones| DB
-    API -->|Guardar y recuperar archivos| DOC
-    API -->|Solicitar envío de avisos| NOT
+    U[Usuarios] -->|HTTPS| NAV[Navegador]
+    NAV -->|HTTPS: dominio público y subdominio del personal| APP[Aplicación web<br/>Laravel 13 + Blade]
+    APP -->|SQL vía Eloquent| DB[(PostgreSQL)]
+    APP -->|lee y escribe| FS[(Almacenamiento privado)]
+    APP -->|SMTP| MAIL[Servidor de correo]
 ```
 
 ## 4. Comunicación entre contenedores
 
-1. Los usuarios acceden a la aplicación web.
-2. La aplicación web envía solicitudes al backend.
-3. El backend ejecuta las operaciones y consulta o actualiza la base de datos.
-4. Los documentos se gestionan mediante el almacenamiento documental.
-5. El backend solicita notificaciones cuando corresponde.
+- Navegador ↔ aplicación: HTTPS, formularios y páginas HTML (sin API REST).
+- Aplicación ↔ base de datos: conexión `pgsql` de Laravel.
+- Aplicación ↔ archivos: disco local privado; descarga solo con permiso.
+- Aplicación → correo: SMTP configurado en `.env`.
 
 ## 5. Consideraciones
 
-Estos contenedores representan una propuesta lógica inicial. Las tecnologías específicas, el mecanismo de almacenamiento y el proveedor de notificaciones se definirán posteriormente.
-
-La aplicación web, el backend y los almacenes de datos no implican necesariamente despliegues independientes; su organización final deberá mantener coherencia con el monolito modular propuesto.
+Todo corre en un solo hosting. El subdominio del personal apunta a la misma aplicación; Laravel separa las rutas según el dominio (`APP_STAFF_DOMAIN`).
