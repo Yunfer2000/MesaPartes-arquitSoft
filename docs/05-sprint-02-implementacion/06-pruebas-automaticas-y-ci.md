@@ -88,5 +88,8 @@ php vendor/bin/phpunit --coverage-html cobertura-html
 | Medida | Resultado |
 |---|---|
 | Pruebas | 165 de 165 en verde |
-| Cobertura de líneas | *Completar con el valor del resumen de GitHub Actions* |
-| Cobertura de métodos | *Completar con el valor del resumen de GitHub Actions* |
+| Cobertura de líneas | **96.89 %** (1,152 de 1,189 líneas) |
+| Cobertura de métodos | **86.64 %** (188 de 217 métodos) |
+| Cobertura de clases | **71.93 %** (41 de 57 clases con todos sus métodos cubiertos) |
+
+Medido en GitHub Actions el 27/11/2026 (ejecución #4, PHP 8.4 con PCOV). La cobertura de clases es menor porque una clase solo cuenta si **todos** sus métodos están cubiertos; la de líneas muestra que casi todo el código se ejecuta en alguna prueba.

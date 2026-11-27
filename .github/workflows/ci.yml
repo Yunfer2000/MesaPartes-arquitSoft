@@ -50,7 +50,7 @@ jobs:
 
       - name: Ejecutar pruebas con cobertura
         run: |
-          php vendor/bin/phpunit --coverage-text=cobertura.txt --coverage-html=cobertura-html --coverage-clover=cobertura.xml --log-junit=resultados-pruebas.xml
+          php vendor/bin/phpunit --coverage-text=cobertura.txt --coverage-html=cobertura-html --coverage-clover=cobertura.xml --log-junit=resultados-pruebas.xml --colors=never
           {
             echo '## Resultado de las pruebas automáticas'
             echo

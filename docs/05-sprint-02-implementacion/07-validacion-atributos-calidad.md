@@ -6,16 +6,16 @@ En el Sprint 1 se definieron los atributos de calidad (AC01 a AC08) y sus escena
 
 | Escenario | Atributo | Herramienta | Prueba | Medida esperada | Resultado |
 |---|---|---|---|---|---|
-| EQ01 | Rendimiento | **k6** | `pruebas/k6/carga-api.js` hasta 2,000 usuarios virtuales | Consulta p95 de 3 s o menos | *Completar con resultados-k6.md* |
+| EQ01 | Rendimiento | **k6** | `pruebas/k6/carga-api.js` hasta 2,000 usuarios virtuales | Consulta p95 de 3 s o menos | 2,000 usuarios: p95 = 6.15 s. **No cumple** con el servidor de desarrollo (ver 3.3); se repite en el Sprint 3 con el servidor de producción |
 | EQ01 | Rendimiento | PHPUnit | `ConsultaApiTest::test_la_consulta_usa_pocas_consultas_sql_sin_n_mas_1` | 5 consultas SQL o menos | 4 consultas. Cumple |
-| AC03 | Escalabilidad | k6 + caché | Catálogo en la misma prueba de carga | p95 de 1 s o menos, 0 consultas SQL en caché | *Completar con resultados-k6.md* |
+| AC03 | Escalabilidad | k6 + caché | Catálogo en la misma prueba de carga | p95 de 1 s o menos, 0 consultas SQL en caché | 66,943 peticiones atendidas sin errores a 222 por segundo; p95 = 6.15 s. 0 consultas SQL en caché: cumple. Tiempo: no cumple con el servidor de desarrollo |
 | EQ02 | Seguridad | PHPUnit y Postman | 401 sin token, 403 sin rol, 429 al pasar el límite, sin correo en el JSON | Ninguna petición no autorizada obtiene datos | Cumple (pruebas en verde) |
-| EQ03 | Disponibilidad | k6 | Tasa de errores durante la carga | Menos de 1 % de errores | *Completar con resultados-k6.md* |
+| EQ03 | Disponibilidad | k6 | Tasa de errores durante la carga | Menos de 1 % de errores | **0.00 % de errores** con 2,000 usuarios. Cumple |
 | EQ04 | Trazabilidad | PHPUnit | `ConsultaApiTest::test_el_recorrido_se_actualiza_al_derivar`, `DerivacionMultipleTest` | El 100 % de las derivaciones tiene su movimiento | Cumple |
 | EQ05 | Integridad | PHPUnit | `RecepcionMesaTest::test_no_se_recepciona_dos_veces` (bloqueo de fila) | Nunca dos recepciones | Cumple |
 | EQ06 | Autenticidad | PHPUnit y Postman | `VerificacionApiTest`, `VerificacionTest` | Código válido = auténtico con huella SHA-256 | Cumple |
-| AC07 | Mantenibilidad | PHPUnit, CI y cobertura | 165 pruebas en GitHub Actions; `ContratoOpenApiTest` y `EspecificacionesTest` | Todo en verde en cada push | Cumple. Cobertura: *completar* |
-| Contrato | Interoperabilidad | Postman y Redocly | Colección con validación del esquema JSON; `redocly lint` | Las respuestas siguen `openapi.yaml` | Postman: 15 peticiones, 28 pruebas, 0 errores, respuesta promedio 316 ms. Cumple |
+| AC07 | Mantenibilidad | PHPUnit, CI y cobertura | 165 pruebas en GitHub Actions; `ContratoOpenApiTest` y `EspecificacionesTest` | Todo en verde en cada push | Cumple. 165 pruebas, cobertura de líneas 96.89 % |
+| Contrato | Interoperabilidad | Postman y Redocly | Colección con validación del esquema JSON; `redocly lint` | Las respuestas siguen `openapi.yaml` | Postman: 15 peticiones, 28 pruebas, 0 errores, respuesta promedio 316 ms en la PC y 44 ms en GitHub Actions. Cumple |
 | EQ07 | Usabilidad | Prueba con usuarios | Tarea guiada: presentar y consultar un trámite desde el celular | Lo completa sin ayuda | Se aplica en el Sprint 3 con el sistema desplegado |
 
 ## 2. Prueba funcional y de contrato con Postman
@@ -105,15 +105,30 @@ En una PC con `php artisan serve` conviene empezar con `-e MAX_VUS=200`. El serv
 
 ### 3.3 Resultados
 
-*Pegar aquí la tabla de `resultados-k6.md` y una captura del resumen de GitHub Actions.*
+Se hicieron tres corridas. Las tres sirven como evidencia, cada una de un atributo distinto.
 
-| Métrica | Valor |
+| Corrida | Dónde | Usuarios | Peticiones | Por segundo | Errores | Consulta p95 | Catálogo p95 | Qué demuestra |
+|---|---|---|---|---|---|---|---|---|
+| 1 | PC, límites normales | 200 | 15,326 | 50.8 | 99.5 % (429) | 781 ms | 808 ms | El límite de peticiones protege la API (EQ02, ver 3.4) |
+| 2 | PC, `php artisan serve` en Windows | 200 | 3,266 | 10.8 | 50.4 % | 16.8 s | 16.9 s | Punto de quiebre del servidor de desarrollo de Windows, que atiende una petición a la vez |
+| 3 | GitHub Actions, Linux con 16 procesos PHP | **2,000** | **66,943** | **221.9** | **0.00 %** | 6.15 s | 6.15 s | Con 2,000 usuarios el sistema no pierde ninguna petición; el tiempo de espera sube por el límite del servidor de prueba |
+
+Umbrales de la corrida 3 (27/11/2026, ejecución manual #5 del CI):
+
+| Umbral | Resultado |
 |---|---|
-| Peticiones totales | |
-| Peticiones por segundo | |
-| Consulta p95 | |
-| Catálogo p95 | |
-| Errores | |
+| `http_req_failed` menos de 1 % | **Cumple** (0.00 %) |
+| `errores_funcionales` menos de 1 % | **Cumple** (0.00 %) |
+| `tiempo_consulta_expediente` p95 menos de 3 s | No cumple (6.15 s) |
+| `tiempo_catalogo_tipos` p95 menos de 1 s | No cumple (6.15 s) |
+
+**Interpretación.** El sistema respondió bien a las 66,943 peticiones, sin errores. Que el catálogo, que sale de la caché y no consulta la base de datos, tarde lo mismo que la consulta (6.15 s) muestra que el cuello de botella no es el código ni MySQL: es la **cola de espera del servidor de prueba**. `php artisan serve` llegó a unas 222 peticiones por segundo, y 2,000 usuarios con 1 a 2 s entre clics piden más de 1,000 por segundo. Por eso las peticiones esperan su turno.
+
+Con ese techo, el servidor de prueba atiende sin cola a unos **350 usuarios activos a la vez** (estimación: 222 peticiones por segundo por 1.6 s por usuario). Es más de lo que necesita el instituto en horario normal.
+
+**Decisión para el Sprint 3.** El despliegue usará un servidor web de producción (Nginx o Apache con PHP-FPM y OPcache), que atiende muchas peticiones en paralelo. La misma prueba k6 con 2,000 usuarios se repetirá sobre ese servidor para validar EQ01 con la meta de 3 s.
+
+El CI marca esta corrida en rojo porque k6 termina con el código 99 cuando un umbral no se cumple. Es el comportamiento esperado: así el CI avisa que la meta de tiempo todavía no se alcanza.
 
 ### 3.4 Por qué los límites de peticiones no cuentan como fallo
 
