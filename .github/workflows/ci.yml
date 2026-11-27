@@ -140,13 +140,15 @@ jobs:
       - name: Preparar datos de prueba y levantar el servidor
         run: |
           cp .env.example .env
+          # php artisan serve vuelve a leer .env (no hereda DB_* del trabajo): se escriben aquí
+          sed -i -E 's#^DB_CONNECTION=.*#DB_CONNECTION=sqlite#; s#^DB_DATABASE=.*#DB_DATABASE=/tmp/postman.sqlite#; s#^CACHE_STORE=.*#CACHE_STORE=file#' .env
           php artisan key:generate
           touch /tmp/postman.sqlite
           php artisan migrate --seed --force
           php artisan db:seed --class=CargaK6Seeder --force
           nohup php artisan serve --host=127.0.0.1 --port=8000 > /tmp/servidor.log 2>&1 &
           sleep 5
-          curl -fsS http://127.0.0.1:8000/api/v1/tipos-documento > /dev/null
+          curl -fsS http://127.0.0.1:8000/api/v1/tipos-documento > /dev/null || { cat /tmp/servidor.log; tail -50 storage/logs/laravel.log; exit 1; }
       - name: Ejecutar la colección de Postman
         working-directory: .
         run: |
@@ -188,6 +190,9 @@ jobs:
       - name: Preparar base de datos y caché de Laravel
         run: |
           cp .env.example .env
+          # php artisan serve vuelve a leer .env: la base, la caché y los límites se escriben en el archivo
+          sed -i -E 's/^API_LIMITE_(GENERAL|CONSULTAS|VERIFICACIONES)=.*/API_LIMITE_\1=1000000/' .env
+          sed -i -E 's#^DB_CONNECTION=.*#DB_CONNECTION=sqlite#; s#^DB_DATABASE=.*#DB_DATABASE=/tmp/carga.sqlite#; s#^CACHE_STORE=.*#CACHE_STORE=file#; s#^APP_DEBUG=.*#APP_DEBUG=false#' .env
           php artisan key:generate
           touch /tmp/carga.sqlite
           php artisan migrate --seed --force
@@ -198,7 +203,7 @@ jobs:
         run: |
           nohup php artisan serve --host=127.0.0.1 --port=8000 > /tmp/servidor.log 2>&1 &
           sleep 5
-          curl -fsS http://127.0.0.1:8000/api/v1/tipos-documento > /dev/null
+          curl -fsS http://127.0.0.1:8000/api/v1/tipos-documento > /dev/null || { cat /tmp/servidor.log; tail -50 storage/logs/laravel.log; exit 1; }
       - uses: grafana/setup-k6-action@v1
       - name: Ejecutar k6
         working-directory: .
