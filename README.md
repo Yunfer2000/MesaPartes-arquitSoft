@@ -79,11 +79,11 @@ Documentación de la arquitectura y código fuente del sistema **Mesa de Partes 
 | [`sistema/`](sistema) | Código fuente completo del sistema (Laravel 13) |
 | [`sistema/public/docs/openapi.yaml`](sistema/public/docs/openapi.yaml) | Contrato OpenAPI 3 de la API. Swagger UI en `/api-docs` |
 | [`sistema/specs/`](sistema/specs) | Especificaciones SDD por caso de uso y por endpoint |
-| [`sistema/tests/`](sistema/tests) | 164 pruebas automáticas (PHPUnit) |
+| [`sistema/tests/`](sistema/tests) | 165 pruebas automáticas (PHPUnit) |
 | [`pruebas/postman/`](pruebas/postman) | Colección de Postman |
 | [`pruebas/k6/`](pruebas/k6) | Prueba de carga hasta 2,000 usuarios virtuales |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | Integración continua: pruebas, cobertura, MySQL, OpenAPI, Postman y k6 |
 
 ## 4. Estado del proyecto
 
-El sistema está construido, tiene una API REST v1 documentada con OpenAPI y 164 pruebas automáticas que corren en GitHub Actions en cada cambio. Las mejoras futuras evaluadas son: organización en monolito modular, Clean Architecture y firma digital con certificado (Firma Perú).
+El sistema está construido, tiene una API REST v1 documentada con OpenAPI y 165 pruebas automáticas que corren en GitHub Actions en cada cambio. Las mejoras futuras evaluadas son: organización en monolito modular, Clean Architecture y firma digital con certificado (Firma Perú).

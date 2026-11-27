@@ -9,7 +9,7 @@ En el Sprint 1 se analizó el sistema y se decidió su arquitectura (monolito en
 | Código fuente organizado según la arquitectura | [`sistema/`](../../sistema): `app/Http` (presentación), `app/Services` (negocio), `app/Models` (datos) |
 | Primera versión funcional del sistema | Formulario público, bandejas de Mesa de Partes y de las áreas, panel del administrador y la API REST v1 |
 | Documentación de la API con OpenAPI y Swagger | [`sistema/public/docs/openapi.yaml`](../../sistema/public/docs/openapi.yaml) y la página `/api-docs` del sistema |
-| Pruebas automáticas con reporte de cobertura | 164 pruebas PHPUnit en [`sistema/tests/`](../../sistema/tests) y el reporte que genera GitHub Actions |
+| Pruebas automáticas con reporte de cobertura | 165 pruebas PHPUnit en [`sistema/tests/`](../../sistema/tests) y el reporte que genera GitHub Actions |
 | Evidencias de la validación de atributos de calidad | [Validación de atributos de calidad](07-validacion-atributos-calidad.md), Postman y k6 en [`pruebas/`](../../pruebas) |
 
 ## Actividades del sprint

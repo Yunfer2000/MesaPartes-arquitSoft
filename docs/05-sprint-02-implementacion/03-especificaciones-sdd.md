@@ -18,7 +18,7 @@ Cada especificación tiene:
 |---|---|---|---|
 | [API01 Consultar expediente](../../sistema/specs/API01-consultar-expediente.md) | 6 | 7 | `POST /api/v1/consultas` |
 | [API02 Verificar documento](../../sistema/specs/API02-verificar-documento.md) | 2 | 4 | `GET /api/v1/verificaciones/{codigo}` |
-| [API03 Tipos de documento](../../sistema/specs/API03-tipos-de-documento.md) | 10 | 7 | CRUD `/api/v1/tipos-documento` |
+| [API03 Tipos de documento](../../sistema/specs/API03-tipos-de-documento.md) | 11 | 8 | CRUD `/api/v1/tipos-documento` |
 | [API04 Token de acceso](../../sistema/specs/API04-token-de-acceso.md) | 3 | 5 | `POST` y `DELETE /api/v1/tokens` |
 
 Además siguen vigentes las 18 especificaciones `CUxx` de los casos de uso del sistema (124 criterios), escritas antes de este sprint.

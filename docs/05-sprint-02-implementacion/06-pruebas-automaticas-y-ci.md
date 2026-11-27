@@ -16,11 +16,11 @@ Cada prueba corre sobre una base de datos **SQLite en memoria** que se crea y se
 
 ## 2. Pruebas del sistema
 
-**164 pruebas, 2 993 comprobaciones, todas en verde** (`php artisan test`, unos 8 segundos).
+**165 pruebas, 3 009 comprobaciones, todas en verde** (`php artisan test`, unos 8 segundos).
 
 | Grupo | Archivo | Pruebas |
 |---|---|---|
-| **API REST v1 (este sprint)** | `tests/Feature/Api/TiposDocumentoApiTest.php` | 10 |
+| **API REST v1 (este sprint)** | `tests/Feature/Api/TiposDocumentoApiTest.php` | 11 |
 | | `tests/Feature/Api/ConsultaApiTest.php` | 6 |
 | | `tests/Feature/Api/TokenApiTest.php` | 3 |
 | | `tests/Feature/Api/VerificacionApiTest.php` | 2 |
@@ -67,7 +67,7 @@ flowchart LR
 
 | Trabajo | Qué hace | Resultado |
 |---|---|---|
-| `pruebas-y-cobertura` | Instala PHP 8.4 con PCOV, corre las 164 pruebas y mide la cobertura | Resumen en la página de la ejecución y el artefacto **reporte-cobertura** (HTML, texto, Clover y JUnit) |
+| `pruebas-y-cobertura` | Instala PHP 8.4 con PCOV, corre las 165 pruebas y mide la cobertura | Resumen en la página de la ejecución y el artefacto **reporte-cobertura** (HTML, texto, Clover y JUnit) |
 | `pruebas-mysql` | Corre las mismas pruebas sobre un MySQL 8 real | Confirma que el sistema funciona con el motor de producción |
 | `contrato-openapi` | Revisa `openapi.yaml` con Redocly | Falla si el contrato tiene errores |
 | `carga-k6` | Solo cuando se ejecuta a mano: levanta el sistema y lanza k6 | Artefacto **resultados-k6** |
@@ -87,6 +87,6 @@ php vendor/bin/phpunit --coverage-html cobertura-html
 
 | Medida | Resultado |
 |---|---|
-| Pruebas | 164 de 164 en verde |
+| Pruebas | 165 de 165 en verde |
 | Cobertura de líneas | *Completar con el valor del resumen de GitHub Actions* |
 | Cobertura de métodos | *Completar con el valor del resumen de GitHub Actions* |

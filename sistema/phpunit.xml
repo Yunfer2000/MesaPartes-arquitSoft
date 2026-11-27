@@ -17,6 +17,10 @@
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_STAFF_DOMAIN" value=""/>
+        <env name="API_LIMITE_GENERAL" value="60"/>
+        <env name="API_LIMITE_CONSULTAS" value="10"/>
+        <env name="API_LIMITE_VERIFICACIONES" value="30"/>
+        <env name="API_LIMITE_TOKENS" value="5"/>
         <env name="TURNSTILE_SITE_KEY" value=""/>
         <env name="TURNSTILE_SECRET_KEY" value=""/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>

@@ -14,7 +14,7 @@ En el Sprint 1 se definieron los atributos de calidad (AC01 a AC08) y sus escena
 | EQ04 | Trazabilidad | PHPUnit | `ConsultaApiTest::test_el_recorrido_se_actualiza_al_derivar`, `DerivacionMultipleTest` | El 100 % de las derivaciones tiene su movimiento | Cumple |
 | EQ05 | Integridad | PHPUnit | `RecepcionMesaTest::test_no_se_recepciona_dos_veces` (bloqueo de fila) | Nunca dos recepciones | Cumple |
 | EQ06 | Autenticidad | PHPUnit y Postman | `VerificacionApiTest`, `VerificacionTest` | Código válido = auténtico con huella SHA-256 | Cumple |
-| AC07 | Mantenibilidad | PHPUnit, CI y cobertura | 164 pruebas en GitHub Actions; `ContratoOpenApiTest` y `EspecificacionesTest` | Todo en verde en cada push | Cumple. Cobertura: *completar* |
+| AC07 | Mantenibilidad | PHPUnit, CI y cobertura | 165 pruebas en GitHub Actions; `ContratoOpenApiTest` y `EspecificacionesTest` | Todo en verde en cada push | Cumple. Cobertura: *completar* |
 | Contrato | Interoperabilidad | Postman y Redocly | Colección con validación del esquema JSON; `redocly lint` | Las respuestas siguen `openapi.yaml` | Postman: 15 peticiones, 28 pruebas, 0 errores, respuesta promedio 316 ms. Cumple |
 | EQ07 | Usabilidad | Prueba con usuarios | Tarea guiada: presentar y consultar un trámite desde el celular | Lo completa sin ayuda | Se aplica en el Sprint 3 con el sistema desplegado |
 
@@ -92,7 +92,9 @@ Umbrales (si uno falla, k6 termina con error):
 winget install k6 --source winget
 cd sistema
 # Subir los límites para que la prueba no reciba 429 (todas las peticiones salen de la misma IP)
-$env:API_LIMITE_GENERAL = "1000000"; $env:API_LIMITE_CONSULTAS = "1000000"; $env:API_LIMITE_VERIFICACIONES = "1000000"
+$ruta = (Resolve-Path .env).Path
+$texto = [IO.File]::ReadAllText($ruta) -replace '(?m)^API_LIMITE_(GENERAL|CONSULTAS|VERIFICACIONES)=.*$', 'API_LIMITE_$1=1000000'
+[IO.File]::WriteAllText($ruta, $texto, (New-Object Text.UTF8Encoding $false))
 php artisan db:seed --class=CargaK6Seeder
 php artisan serve
 # En otra ventana de PowerShell, desde la raíz del repositorio:
@@ -116,6 +118,8 @@ En una PC con `php artisan serve` conviene empezar con `-e MAX_VUS=200`. El serv
 ### 3.4 Por qué los límites de peticiones no cuentan como fallo
 
 En uso normal, cada IP puede hacer 10 consultas por minuto. k6 lanza todas las peticiones desde una sola máquina, así que sin subir los límites casi todas recibirían 429. Esto **confirma que la protección funciona** (EQ02), pero no mide el rendimiento. Por eso la prueba de carga sube los límites con variables de entorno, y la prueba de seguridad (`ConsultaApiTest::test_limita_a_10_consultas_por_minuto`) comprueba el límite real.
+
+Evidencia: la primera corrida en la PC (26/11/2026, 200 usuarios virtuales, límites normales) hizo 15,326 peticiones y el 99.5 % recibió 429. La API siguió respondiendo rápido (p95 de la consulta = 781 ms) mientras rechazaba el exceso: el límite protege al sistema de una avalancha de peticiones desde una misma IP.
 
 ## 4. Otras validaciones
 

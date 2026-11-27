@@ -74,7 +74,7 @@ Las especificaciones `APIxx` siguen el mismo formato y además tienen la secció
 |---|---|---|
 | [API01 Consultar expediente](API01-consultar-expediente.md) | 6 | `POST /api/v1/consultas` |
 | [API02 Verificar documento](API02-verificar-documento.md) | 2 | `GET /api/v1/verificaciones/{codigo}` |
-| [API03 Tipos de documento](API03-tipos-de-documento.md) | 10 | CRUD `/api/v1/tipos-documento` |
+| [API03 Tipos de documento](API03-tipos-de-documento.md) | 11 | CRUD `/api/v1/tipos-documento` |
 | [API04 Token de acceso](API04-token-de-acceso.md) | 3 | `POST/DELETE /api/v1/tokens` |
 
 CU01 *Registrar cuenta* se eliminó (el ciudadano presenta sin cuenta), por eso no tiene especificación.

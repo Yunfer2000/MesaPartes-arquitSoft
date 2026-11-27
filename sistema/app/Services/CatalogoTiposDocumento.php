@@ -19,10 +19,14 @@ class CatalogoTiposDocumento
 
     public const SEGUNDOS = 3600;
 
-    /** @return Collection<int, TipoDocumento> */
-    public function listar(?bool $activo = null): Collection
+    /** @return \Illuminate\Database\Eloquent\Collection<int, TipoDocumento> */
+    public function listar(?bool $activo = null): \Illuminate\Database\Eloquent\Collection|Collection
     {
-        $todos = Cache::remember(self::CLAVE, self::SEGUNDOS, fn () => TipoDocumento::orderBy('nombre')->get());
+        // Se guardan solo los datos (arreglos), no objetos: Laravel no deserializa clases desde la
+        // caché (config/cache.php, serializable_classes = false) para evitar ataques de deserialización.
+        $filas = Cache::remember(self::CLAVE, self::SEGUNDOS, fn () => TipoDocumento::orderBy('nombre')->get()
+            ->map(fn (TipoDocumento $tipo) => $tipo->getAttributes())->all());
+        $todos = TipoDocumento::hydrate($filas);
 
         return $activo === null ? $todos : $todos->where('activo', $activo)->values();
     }

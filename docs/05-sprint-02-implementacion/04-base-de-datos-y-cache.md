@@ -2,7 +2,7 @@
 
 ## 1. Base de datos
 
-- **Motor:** MySQL 8 (InnoDB, `utf8mb4`) en producción. Las pruebas automáticas usan SQLite en memoria para ser rápidas, y el CI repite todas las pruebas sobre MySQL 8 real (trabajo `pruebas-mysql`). Las 164 pruebas también se corrieron sobre MariaDB 10.11 y pasaron todas.
+- **Motor:** MySQL 8 (InnoDB, `utf8mb4`) en producción. Las pruebas automáticas usan SQLite en memoria para ser rápidas, y el CI repite todas las pruebas sobre MySQL 8 real (trabajo `pruebas-mysql`). Las 165 pruebas también se corrieron sobre MariaDB 10.11 y pasaron todas.
 - **Migraciones:** el esquema está en `sistema/database/migrations`. Se crea con `php artisan migrate`.
 
 ### 1.1 Índices que usan las consultas más frecuentes
@@ -117,7 +117,13 @@ Medido en las pruebas automáticas (`TiposDocumentoApiTest::test_la_lista_sale_d
 | Segunda lectura | **0** (sale de la caché) |
 | Lectura después de registrar un tipo | 1, y ya trae el tipo nuevo (la clave se borró al crear) |
 
-### 2.4 Almacén de caché
+### 2.4 Qué se guarda: datos, no objetos
+
+La primera versión guardaba en caché la colección de modelos Eloquent. Las pruebas automáticas pasaban porque usan una caché en memoria que no serializa. En GitHub Actions, la colección de Postman corrió contra el sistema real con caché en archivo y la segunda lectura del catálogo respondió **500**. Laravel 13 no deserializa clases desde la caché (`config/cache.php`, `serializable_classes = false`), para que nadie pueda inyectar objetos si se filtra la clave de la aplicación.
+
+Corrección: la caché guarda solo arreglos con los datos de cada tipo, y el servicio reconstruye los modelos con `TipoDocumento::hydrate(...)`. Se agregó la prueba `test_la_cache_funciona_con_un_almacen_que_serializa` (criterio CA-API03-11), que falla con la versión anterior y pasa con la nueva. Es un ejemplo de por qué se valida la arquitectura con varias herramientas: PHPUnit, Postman y el CI se complementan.
+
+### 2.5 Almacén de caché
 
 - **Desarrollo y hosting compartido:** `CACHE_STORE=database` (tabla `cache`) o `file`. No requiere instalar nada.
 - **Si el hosting lo permite:** `CACHE_STORE=redis`. El código no cambia; solo la variable del `.env`.

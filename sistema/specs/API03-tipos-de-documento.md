@@ -117,8 +117,17 @@ recurso `products` del caso de referencia ayaPet.
 - **Cubre:** RN-API03-04
 - **Prueba:** `tests/Feature/Api/TiposDocumentoApiTest.php::test_la_lista_sale_de_la_cache_y_se_renueva_al_cambiar`
 
+### CA-API03-11 La caché funciona en producción
+
+- **Dado** un almacén de caché que guarda texto serializado (database, file o redis) y no acepta clases
+- **Cuando** se pide el catálogo dos veces
+- **Entonces** las dos respuestas son 200 e iguales, porque la caché guarda arreglos y no objetos
+- **Cubre:** RN de caché, `config/cache.php` con `serializable_classes = false`
+- **Prueba:** `tests/Feature/Api/TiposDocumentoApiTest.php::test_la_cache_funciona_con_un_almacen_que_serializa`
+
 ## Tareas técnicas
 
+- [x] Guardar en caché solo los datos (arreglos) y reconstruir los modelos con `hydrate`, porque Laravel no deserializa clases desde la caché.
 - [x] Servicio `app/Services/CatalogoTiposDocumento.php` (listar con caché, crear, actualizar, eliminar con regla de integridad).
 - [x] El controlador Blade del Administrador usa el mismo servicio, así la caché se invalida también desde la pantalla.
 - [x] Relación `TipoDocumento::expedientes()`.

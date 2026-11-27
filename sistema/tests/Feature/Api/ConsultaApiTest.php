@@ -76,6 +76,9 @@ class ConsultaApiTest extends TestCase
 
     public function test_limita_a_10_consultas_por_minuto(): void
     {
+        // El límite real de producción, aunque el .env de la PC tenga valores altos para k6
+        config(['api.limite_consultas' => 10, 'api.limite_general' => 60]);
+
         for ($i = 0; $i < 10; $i++) {
             $this->postJson('/api/v1/consultas', ['numero' => 'X', 'numero_documento' => '1'])->assertNotFound();
         }

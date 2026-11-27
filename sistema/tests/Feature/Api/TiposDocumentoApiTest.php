@@ -150,4 +150,19 @@ class TiposDocumentoApiTest extends TestCase
         $this->assertFalse(Cache::has(CatalogoTiposDocumento::CLAVE), 'al crear se borra la caché');
         $this->assertContains('Nuevo por API', array_column($this->getJson('/api/v1/tipos-documento')->json('data'), 'nombre'));
     }
+
+    public function test_la_cache_funciona_con_un_almacen_que_serializa(): void
+    {
+        // En producción la caché (database, file o redis) guarda texto serializado y no acepta clases.
+        config(['cache.stores.array.serialize' => true]);
+        Cache::forgetDriver('array');
+        Cache::flush();
+
+        $primera = $this->getJson('/api/v1/tipos-documento')->assertOk()->json('data');
+        $segunda = $this->getJson('/api/v1/tipos-documento')->assertOk()->json('data');
+
+        $this->assertSame($primera, $segunda, 'la segunda respuesta sale de la caché y es igual');
+        $this->assertIsBool($segunda[0]['activo']);
+        $this->getJson('/api/v1/tipos-documento?activo=1')->assertOk()->assertJsonMissing(['activo' => false]);
+    }
 }
