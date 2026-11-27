@@ -1,0 +1,378 @@
+openapi: 3.0.3
+info:
+  title: API REST v1 · Mesa de Partes Virtual
+  version: 1.0.0
+  description: |
+    API del sistema Mesa de Partes Virtual del IESTP Manuel Antonio Hierro Pozo (Ayacucho).
+
+    Es otra puerta de entrada al mismo monolito en capas: los controladores de la API usan
+    los mismos servicios que las pantallas Blade (ConsultaExpediente, Verificacion y
+    CatalogoTiposDocumento). Todas las respuestas son JSON.
+
+    **Autenticación:** las operaciones que cambian el catálogo piden un token Bearer de un
+    usuario con rol Administrador. Se obtiene con `POST /api/v1/tokens`.
+
+    **Límites de peticiones:** 60 por minuto en general; 10 por minuto en consultas, 30 en
+    verificaciones y 5 en tokens. Al pasarse, la API responde 429.
+  contact:
+    name: Equipo Mesa de Partes Virtual
+  license:
+    name: Uso académico · IESTP Manuel Antonio Hierro Pozo
+servers:
+  - url: /api/v1
+    description: Mismo servidor del sistema
+tags:
+  - name: Tipos de documento
+    description: Catálogo de tipos de documento (CRUD). Equivale a "products" del caso ayaPet.
+  - name: Consultas
+    description: CU07 Consultar seguimiento del expediente.
+  - name: Verificaciones
+    description: CU19 Verificar documento (firma electrónica del sistema).
+  - name: Tokens
+    description: Token de acceso del personal (Laravel Sanctum).
+
+paths:
+  /tipos-documento:
+    get:
+      tags: [Tipos de documento]
+      summary: Listar tipos de documento
+      description: Devuelve el catálogo ordenado por nombre. La lista se guarda en caché una hora y se renueva al crear, editar o eliminar un tipo.
+      operationId: listarTipos
+      security: []
+      parameters:
+        - name: activo
+          in: query
+          required: false
+          description: 1 solo activos, 0 solo inactivos. Sin el parámetro devuelve todos.
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Lista de tipos de documento
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/TipoDocumento' }
+        '422': { $ref: '#/components/responses/Validacion' }
+        '429': { $ref: '#/components/responses/DemasiadasPeticiones' }
+    post:
+      tags: [Tipos de documento]
+      summary: Registrar un tipo de documento
+      operationId: crearTipo
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TipoDocumentoEntrada' }
+            example: { nombre: Solicitud de constancia de estudios, descripcion: Constancia para trámites externos }
+      responses:
+        '201':
+          description: Tipo de documento registrado
+          headers:
+            Location:
+              description: URL del recurso creado
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/TipoDocumento' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '422': { $ref: '#/components/responses/Validacion' }
+  /tipos-documento/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer, minimum: 1 }
+    get:
+      tags: [Tipos de documento]
+      summary: Consultar un tipo de documento
+      operationId: verTipo
+      security: []
+      responses:
+        '200':
+          description: Tipo de documento encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/TipoDocumento' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+    put:
+      tags: [Tipos de documento]
+      summary: Actualizar un tipo de documento
+      operationId: actualizarTipo
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TipoDocumentoEntrada' }
+      responses:
+        '200':
+          description: Tipo de documento actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/TipoDocumento' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '422': { $ref: '#/components/responses/Validacion' }
+    delete:
+      tags: [Tipos de documento]
+      summary: Eliminar un tipo de documento
+      description: Solo se elimina si ningún expediente lo usa. Si está en uso responde 409 y hay que desactivarlo con PUT (activo = false).
+      operationId: eliminarTipo
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: 'Eliminado, sin contenido' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflicto' }
+
+  /consultas:
+    post:
+      tags: [Consultas]
+      summary: Consultar el seguimiento de un expediente
+      description: |
+        CU07. Se envía el N.° de expediente (o el código propio del sello presencial) y el documento
+        de identidad del administrado. Se usa POST para que el DNI no quede en la URL.
+        Si no coincide, no se dice cuál de los dos datos falló.
+      operationId: consultarExpediente
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [numero, numero_documento]
+              properties:
+                numero: { type: string, maxLength: 20, example: EXP-2026-000123 }
+                numero_documento: { type: string, maxLength: 20, example: '45678912' }
+      responses:
+        '200':
+          description: Seguimiento del expediente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Seguimiento' }
+        '404':
+          description: No hay un expediente con ese número y ese documento
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/Validacion' }
+        '429': { $ref: '#/components/responses/DemasiadasPeticiones' }
+
+  /verificaciones/{codigo}:
+    get:
+      tags: [Verificaciones]
+      summary: Verificar una constancia o una respuesta
+      description: CU19. Acepta el código con o sin guiones y en minúsculas.
+      operationId: verificarDocumento
+      security: []
+      parameters:
+        - name: codigo
+          in: path
+          required: true
+          schema: { type: string, example: ABCD-EFGH-JKLM }
+      responses:
+        '200':
+          description: Documento auténtico
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Verificacion' }
+        '404':
+          description: El código no existe
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  autentico: { type: boolean, example: false }
+                  message: { type: string }
+        '429': { $ref: '#/components/responses/DemasiadasPeticiones' }
+
+  /tokens:
+    post:
+      tags: [Tokens]
+      summary: Obtener un token de acceso
+      description: Credenciales de un usuario del personal. El token vence en 8 horas.
+      operationId: crearToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [correo, contrasena]
+              properties:
+                correo: { type: string, format: email, example: admin@demo.test }
+                contrasena: { type: string, format: password, example: password }
+                dispositivo: { type: string, maxLength: 60, example: postman }
+      responses:
+        '201':
+          description: Token creado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [token, tipo]
+                properties:
+                  token: { type: string }
+                  tipo: { type: string, example: Bearer }
+                  expira: { type: string, format: date-time }
+                  usuario:
+                    type: object
+                    properties:
+                      nombre: { type: string }
+                      rol: { type: string }
+        '401':
+          description: Correo o contraseña incorrectos, o usuario inactivo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/Validacion' }
+        '429': { $ref: '#/components/responses/DemasiadasPeticiones' }
+  /tokens/actual:
+    delete:
+      tags: [Tokens]
+      summary: Cerrar la sesión de la API (revocar el token actual)
+      operationId: revocarToken
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Token revocado }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    TipoDocumento:
+      type: object
+      required: [id, nombre, activo]
+      properties:
+        id: { type: integer, example: 3 }
+        nombre: { type: string, example: Solicitud }
+        descripcion: { type: string, nullable: true }
+        activo: { type: boolean, example: true }
+    TipoDocumentoEntrada:
+      type: object
+      required: [nombre]
+      properties:
+        nombre: { type: string, minLength: 3, maxLength: 100, description: Único; se quitan los espacios de los extremos }
+        descripcion: { type: string, maxLength: 200, nullable: true }
+        activo: { type: boolean }
+    Seguimiento:
+      type: object
+      required: [numero, estado, recorrido]
+      properties:
+        numero: { type: string, example: EXP-2026-000123 }
+        asunto: { type: string }
+        modalidad: { type: string, enum: [Virtual, Presencial] }
+        estado:
+          type: string
+          enum: [Presentado, Recibido, Observado, Subsanado, Derivado, En atención, Finalizado]
+        tipo_documento: { type: string, nullable: true }
+        area_actual: { type: string, nullable: true }
+        fecha_presentacion: { type: string, format: date-time }
+        fecha_recepcion: { type: string, format: date-time, nullable: true }
+        remitente: { type: string }
+        codigo_verificacion: { type: string, example: ABCD-EFGH-JKLM }
+        recorrido:
+          type: array
+          description: Mapa de burbujas del seguimiento (una por movimiento)
+          items:
+            type: object
+            properties:
+              paso: { type: integer }
+              titulo: { type: string, example: Derivado }
+              area: { type: string, nullable: true }
+              fecha: { type: string, format: date-time, nullable: true }
+              estado: { type: string, enum: [completado, actual, observado, pendiente] }
+    Verificacion:
+      type: object
+      required: [autentico, codigo, tipo, expediente]
+      properties:
+        autentico: { type: boolean, example: true }
+        codigo: { type: string }
+        tipo: { type: string, enum: [Constancia de presentación, Cargo de recepción, Respuesta del área] }
+        expediente: { type: string }
+        fecha: { type: string, format: date-time }
+        firmante: { type: string }
+        documentos:
+          type: array
+          items:
+            type: object
+            properties:
+              nombre: { type: string }
+              tamano_kb: { type: integer }
+              hash_sha256: { type: string, minLength: 64, maxLength: 64 }
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+    ErrorValidacion:
+      type: object
+      required: [message, errors]
+      properties:
+        message: { type: string, example: El nombre es obligatorio. }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+  responses:
+    Validacion:
+      description: Datos de entrada inválidos (Laravel usa 422 Unprocessable Content en lugar de 400)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorValidacion' }
+    NoAutenticado:
+      description: Falta el token Bearer o no es válido
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Prohibido:
+      description: El usuario no tiene el rol Administrador
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NoEncontrado:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflicto:
+      description: Regla de negocio incumplida (por ejemplo, el tipo está en uso)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    DemasiadasPeticiones:
+      description: Se superó el límite de peticiones por minuto
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

@@ -1,0 +1,71 @@
+/* CU07 Parte A: burbujas numeradas del seguimiento público (una por movimiento real).
+   Verde: paso completado · Azul con borde dorado: paso actual · Rojo: observado · Gris punteado: respuesta pendiente.
+   Usa las variables de app.css (--azul, --dorado, --gris, --borde). */
+.burbujas{
+ --b-verde:#1C7550;--b-rojo:#C42B14;--b-gris:#6A6D7E;--b-linea:#C9CCD8;
+ list-style:none;display:flex;overflow-x:auto;padding:6px 2px 12px;margin:16px 0 4px;scrollbar-width:thin
+}
+.burbujas:focus-visible{outline:2px solid var(--azul-3);outline-offset:2px;border-radius:8px}
+.burbuja{position:relative;flex:1 0 118px;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 6px}
+
+/* Línea que une cada burbuja con la siguiente */
+.burbuja:not(:last-child):after{content:'';position:absolute;top:18px;left:calc(50% + 22px);right:calc(-50% + 22px);border-top:3px solid var(--b-verde)}
+.burbuja.actual:not(:last-child):after,.burbuja-observado:not(:last-child):after{border-top-color:var(--b-linea)}
+.burbuja:has(+ .burbuja-pendiente):after{border-top:3px dashed var(--b-linea)}
+
+/* Número: por defecto, paso completado (verde) */
+.burbuja-num{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;
+ font-weight:700;font-size:15px;color:#fff;background:var(--b-verde);border:3px solid var(--b-verde)}
+.burbuja.actual .burbuja-num{background:var(--azul);border-color:var(--dorado);box-shadow:0 0 0 3px var(--dorado-claro)}
+.burbuja-observado .burbuja-num{background:var(--b-rojo);border-color:var(--b-rojo)}
+.burbuja-observado.actual .burbuja-num{border-color:var(--dorado)}
+.burbuja-pendiente .burbuja-num{background:#fff;color:var(--b-gris);border:3px dashed var(--b-gris)}
+
+/* Texto */
+.burbuja-txt{margin-top:7px;font-size:13px;line-height:1.35}
+.burbuja-txt b{display:block}
+.burbuja-txt small{display:block;color:var(--gris);font-size:12px}
+.burbuja.actual .burbuja-txt b{color:var(--azul)}
+.burbuja-observado .burbuja-txt b{color:var(--b-rojo)}
+.burbuja-pendiente .burbuja-txt b{color:var(--b-gris);font-weight:600}
+
+/* Solo para lectores de pantalla */
+.burbujas .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* Celulares: las burbujas pasan a una columna vertical */
+@media (max-width:860px){
+ .burbujas{flex-direction:column;overflow:visible;padding:4px 0 0}
+ .burbuja{flex:none;flex-direction:row;align-items:flex-start;text-align:left;gap:12px;padding:0 0 18px}
+ .burbuja:not(:last-child):after{top:42px;bottom:4px;left:18px;right:auto;border-top:0;border-left:3px solid var(--b-verde)}
+ .burbuja.actual:not(:last-child):after,.burbuja-observado:not(:last-child):after{border-left-color:var(--b-linea)}
+ .burbuja:has(+ .burbuja-pendiente):after{border-top:0;border-left:3px dashed var(--b-linea)}
+ .burbuja-txt{margin-top:3px}
+}
+
+@media print{.burbuja-num{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+/* CU07 A2: tarjeta superior "Recorrido de tu trámite" y desplegable "Historial detallado" */
+.recorrido{margin-bottom:18px}
+.recorrido .burbujas{margin-top:4px}
+.historial-subtitulo{font-size:14px;color:var(--azul);margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--borde)}
+.subsanacion{font-size:14px}.subsanacion small{display:block;color:var(--gris);font-size:12px}
+.subsanacion p{margin:6px 0;color:var(--texto);overflow-wrap:anywhere}
+.subsanacion .chip{margin-top:6px}
+/* CU07 B2: código propio en el detalle */
+.codigo-propio{display:inline-block;margin:0 0 6px;padding:2px 10px;border-radius:999px;background:var(--azul-claro);color:var(--azul);font-size:13px}
+.codigo-propio b{letter-spacing:.5px}
+
+/* CU07 A3: aviso de observación pendiente y enlaces a la observación */
+.aviso-observacion{display:flex;align-items:center;justify-content:space-between;gap:12px 18px;flex-wrap:wrap;padding:14px 18px;margin-bottom:18px;border-left-color:var(--b-rojo,#C42B14)}
+.aviso-observacion h2{font-size:16px;margin:0 0 2px;color:#7A2410}
+.aviso-observacion p{margin:0;font-size:14px}
+.aviso-observacion .btn{flex:none}
+.burbuja-enlace{display:inline-block;margin-top:4px;font-size:12px;font-weight:600;color:#C42B14}
+.ancla{scroll-margin-top:16px}
+@media (max-width:860px){.aviso-observacion .btn{width:100%;justify-content:center;text-align:center}}
+@media (prefers-reduced-motion:no-preference){html:has(.ancla){scroll-behavior:smooth}}
+@media (prefers-reduced-motion:reduce){.historial-detallado>summary:after{transition:none}}
+@media print{.historial-detallado>summary:after{display:none}}
+/* Mejora de interfaz, paso 2: seguimiento en una sola columna */
+.seguimiento{max-width:900px}
+.detalle-tramite{margin-top:16px}

@@ -1,0 +1,741 @@
+{
+  "info": {
+    "name": "Mesa de Partes Virtual · API REST v1",
+    "description": "Pruebas funcionales y validación del contrato OpenAPI (Sprint 2). Antes de correrla: levanta el sistema con php artisan serve, crea los datos de prueba con php artisan migrate --seed y cambia numeroExpediente y dniRemitente por un trámite real.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Token de acceso",
+      "item": [
+        {
+          "name": "Obtener token (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tokens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tokens"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{adminCorreo}}\",\n  \"contrasena\": \"{{adminContrasena}}\",\n  \"dispositivo\": \"postman\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201 Created\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Devuelve un token Bearer\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.tipo).to.eql(\"Bearer\");",
+                  "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;",
+                  "    pm.collectionVariables.set(\"token\", json.token);",
+                  "});",
+                  "pm.test(\"Responde en menos de 3 s\", () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Credenciales incorrectas (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tokens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tokens"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{adminCorreo}}\",\n  \"contrasena\": \"incorrecta\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"Trae mensaje\", () => pm.expect(pm.response.json().message).to.be.a(\"string\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Tipos de documento (CRUD)",
+      "item": [
+        {
+          "name": "Consulta general (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tipos-documento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tipos-documento"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const esquemaTipo = { type: \"object\", required: [\"id\", \"nombre\", \"activo\"], properties: { id: { type: \"integer\" }, nombre: { type: \"string\" }, descripcion: { type: [\"string\", \"null\"] }, activo: { type: \"boolean\" } } };",
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Estructura de la lista según el contrato\", () => {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an(\"array\");",
+                  "    json.data.forEach(t => pm.expect(tv4.validate(t, esquemaTipo), tv4.error && tv4.error.message).to.be.true);",
+                  "});",
+                  "pm.test(\"Responde en menos de 3 s (RNF04)\", () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro válido (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tipos-documento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tipos-documento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Solicitud Postman {{$timestamp}}\",\n  \"descripcion\": \"Creado desde la colección de pruebas\"\n}"
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const esquemaTipo = { type: \"object\", required: [\"id\", \"nombre\", \"activo\"], properties: { id: { type: \"integer\" }, nombre: { type: \"string\" }, descripcion: { type: [\"string\", \"null\"] }, activo: { type: \"boolean\" } } };",
+                  "pm.test(\"Responde 201 Created\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Trae la cabecera Location\", () => pm.response.to.have.header(\"Location\"));",
+                  "pm.test(\"Cumple el esquema TipoDocumento\", () => {",
+                  "    const tipo = pm.response.json().data;",
+                  "    pm.expect(tv4.validate(tipo, esquemaTipo)).to.be.true;",
+                  "    pm.expect(tipo.activo).to.be.true;",
+                  "    pm.collectionVariables.set(\"tipoId\", tipo.id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consulta por ID (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tipos-documento/{{tipoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tipos-documento",
+                "{{tipoId}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Es el registro creado\", () => pm.expect(pm.response.json().data.id).to.eql(Number(pm.collectionVariables.get(\"tipoId\"))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro inválido: nombre vacío (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tipos-documento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tipos-documento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\"\n}"
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Rechazo controlado con 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"Indica el campo con error\", () => pm.expect(pm.response.json().errors).to.have.property(\"nombre\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro sin token (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tipos-documento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tipos-documento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sin token\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualización (200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tipos-documento/{{tipoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tipos-documento",
+                "{{tipoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Solicitud Postman editada {{$timestamp}}\",\n  \"activo\": false\n}"
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Cambios reflejados\", () => {",
+                  "    const tipo = pm.response.json().data;",
+                  "    pm.expect(tipo.nombre).to.include(\"editada\");",
+                  "    pm.expect(tipo.activo).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminación (204)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tipos-documento/{{tipoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tipos-documento",
+                "{{tipoId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 204 No Content\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consulta de eliminado (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tipos-documento/{{tipoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tipos-documento",
+                "{{tipoId}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Mensaje en español\", () => pm.expect(pm.response.json().message).to.eql(\"Recurso no encontrado.\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Consultas y verificaciones",
+      "item": [
+        {
+          "name": "Consultar expediente (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/consultas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "consultas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"{{numeroExpediente}}\",\n  \"numero_documento\": \"{{dniRemitente}}\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200 (cambia numeroExpediente y dniRemitente por uno real)\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Trae estado y recorrido\", () => {",
+                  "    const data = pm.response.json().data;",
+                  "    pm.expect(data).to.have.property(\"estado\");",
+                  "    pm.expect(data.recorrido).to.be.an(\"array\").that.is.not.empty;",
+                  "    pm.expect(data).to.not.have.property(\"correo\");",
+                  "});",
+                  "pm.test(\"Responde en menos de 3 s (EQ01)\", () => pm.expect(pm.response.responseTime).to.be.below(3000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar con DNI equivocado (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/consultas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "consultas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"{{numeroExpediente}}\",\n  \"numero_documento\": \"00000000\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404 sin decir qué dato falló\", () => {",
+                  "    pm.response.to.have.status(404);",
+                  "    pm.expect(pm.response.json().message).to.include(\"No encontramos\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar sin datos (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/consultas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "consultas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verificar código inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/verificaciones/AAAA-BBBB-CCCC",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "verificaciones",
+                "AAAA-BBBB-CCCC"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404 y no auténtico\", () => {",
+                  "    pm.response.to.have.status(404);",
+                  "    pm.expect(pm.response.json().autentico).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Cierre",
+      "item": [
+        {
+          "name": "Revocar token (204)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tokens/actual",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tokens",
+                "actual"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000/api/v1"
+    },
+    {
+      "key": "adminCorreo",
+      "value": "admin@demo.test"
+    },
+    {
+      "key": "adminContrasena",
+      "value": "password"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "tipoId",
+      "value": ""
+    },
+    {
+      "key": "numeroExpediente",
+      "value": "EXP-2026-000001"
+    },
+    {
+      "key": "dniRemitente",
+      "value": "70451236"
+    }
+  ]
+}

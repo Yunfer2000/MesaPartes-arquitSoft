@@ -1,0 +1,216 @@
+# CI del Sprint 2: pruebas automáticas (PHPUnit), cobertura, pruebas sobre MySQL 8,
+# validación del contrato OpenAPI, la colección de Postman y, a pedido, la prueba de carga k6.
+name: CI - Mesa de Partes Virtual
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      carga_k6:
+        description: Ejecutar la prueba de carga k6 (tarda unos 6 minutos)
+        type: boolean
+        default: false
+      max_vus:
+        description: Usuarios virtuales máximos para k6
+        type: string
+        default: '2000'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: sistema
+
+jobs:
+  pruebas-y-cobertura:
+    name: Pruebas PHPUnit y cobertura (SQLite)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Configurar PHP 8.4 con PCOV
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite, gd
+          coverage: pcov
+
+      - name: Instalar dependencias
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Preparar el entorno
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Ejecutar pruebas con cobertura
+        run: |
+          php vendor/bin/phpunit --coverage-text=cobertura.txt --coverage-html=cobertura-html --coverage-clover=cobertura.xml --log-junit=resultados-pruebas.xml
+          {
+            echo '## Resultado de las pruebas automáticas'
+            echo
+            echo '```'
+            sed -n '1,12p' cobertura.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Guardar el reporte de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-cobertura
+          path: |
+            sistema/cobertura-html
+            sistema/cobertura.txt
+            sistema/cobertura.xml
+            sistema/resultados-pruebas.xml
+
+  pruebas-mysql:
+    name: Pruebas sobre MySQL 8 (base de producción)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: mesa_partes_test
+          MYSQL_USER: mesa_user
+          MYSQL_PASSWORD: secreto_ci
+          MYSQL_ROOT_PASSWORD: root_ci
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot_ci"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: mesa_partes_test
+      DB_USERNAME: mesa_user
+      DB_PASSWORD: secreto_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, pdo, pdo_mysql, gd
+          coverage: none
+      - run: composer install --prefer-dist --no-interaction --no-progress
+      - run: |
+          cp .env.example .env
+          php artisan key:generate
+      - name: Ejecutar pruebas contra MySQL
+        run: php artisan test
+
+  contrato-openapi:
+    name: Validar el contrato OpenAPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Revisar openapi.yaml con Redocly
+        run: npx --yes @redocly/cli@1.25.0 lint public/docs/openapi.yaml --format=github-actions
+
+  pruebas-postman:
+    name: Pruebas funcionales con Postman (Newman)
+    runs-on: ubuntu-latest
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /tmp/postman.sqlite
+      CACHE_STORE: file
+      MAIL_MAILER: array
+      APP_STAFF_DOMAIN: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite, gd
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Preparar datos de prueba y levantar el servidor
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          touch /tmp/postman.sqlite
+          php artisan migrate --seed --force
+          php artisan db:seed --class=CargaK6Seeder --force
+          nohup php artisan serve --host=127.0.0.1 --port=8000 > /tmp/servidor.log 2>&1 &
+          sleep 5
+          curl -fsS http://127.0.0.1:8000/api/v1/tipos-documento > /dev/null
+      - name: Ejecutar la colección de Postman
+        working-directory: .
+        run: |
+          npx --yes newman@6.2.1 run pruebas/postman/MesaDePartes-API-v1.postman_collection.json \
+            --env-var "numeroExpediente=EXP-$(date +%Y)-000001" \
+            --reporters cli,junit --reporter-junit-export resultados-postman.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultados-postman
+          path: resultados-postman.xml
+
+  carga-k6:
+    name: Prueba de carga k6
+    if: github.event_name == 'workflow_dispatch' && inputs.carga_k6
+    needs: pruebas-y-cobertura
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: local
+      APP_DEBUG: 'false'
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /tmp/carga.sqlite
+      CACHE_STORE: file
+      SESSION_DRIVER: array
+      MAIL_MAILER: array
+      API_LIMITE_GENERAL: 1000000
+      API_LIMITE_CONSULTAS: 1000000
+      API_LIMITE_VERIFICACIONES: 1000000
+      PHP_CLI_SERVER_WORKERS: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite, gd, opcache
+          ini-values: opcache.enable_cli=1
+          coverage: none
+      - run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
+      - name: Preparar base de datos y caché de Laravel
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          touch /tmp/carga.sqlite
+          php artisan migrate --seed --force
+          php artisan db:seed --class=CargaK6Seeder --force
+          php artisan config:cache
+          php artisan route:cache
+      - name: Levantar el servidor
+        run: |
+          nohup php artisan serve --host=127.0.0.1 --port=8000 > /tmp/servidor.log 2>&1 &
+          sleep 5
+          curl -fsS http://127.0.0.1:8000/api/v1/tipos-documento > /dev/null
+      - uses: grafana/setup-k6-action@v1
+      - name: Ejecutar k6
+        working-directory: .
+        run: k6 run -e MAX_VUS=${{ inputs.max_vus }} pruebas/k6/carga-api.js
+      - name: Publicar el resultado
+        if: always()
+        working-directory: .
+        run: cat resultados-k6.md >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultados-k6
+          path: |
+            resultados-k6.md
+            resultados-k6.json
