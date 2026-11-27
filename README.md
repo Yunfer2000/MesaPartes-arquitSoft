@@ -19,10 +19,18 @@ Documentación de la arquitectura del sistema **Mesa de Partes Virtual**, ya con
 | Enfoque | Orientado a objetos, dirigido por casos de uso (ICONIX), con especificaciones por caso de uso (SDD) |
 | Estilo arquitectónico | Monolito en capas |
 | Patrones | MVC + capa de servicios (Service Layer), Policy, Active Record |
-| Tecnología | PHP 8.4+, Laravel 13, vistas Blade, PostgreSQL |
+| Tecnología | PHP 8.4+, Laravel 13, vistas Blade, MySQL |
 | Despliegue | Hosting institucional; portal público en el dominio y personal en un subdominio |
 
-## 3. Documentación del proyecto
+## 3. Documentación del proyecto por sprint
+
+| Sprint | Contenido | Estado |
+|---|---|---|
+| Sprint 1 | Análisis del sistema, arquitectura de software, diseño y modelo C4 | Terminado |
+| Sprint 2 | Diseño detallado e implementación del sistema | En desarrollo |
+| Sprint 3 | Despliegue del sistema | Pendiente |
+
+## Sprint 1: Análisis y arquitectura
 
 ### Análisis del sistema
 - [Caso de negocio](docs/caso-de-negocio.md)

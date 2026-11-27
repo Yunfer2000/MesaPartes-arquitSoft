@@ -58,8 +58,10 @@
 
 **Justificación:** funciona en un hosting compartido, carga rápido en celulares y es más simple para el equipo.
 
-## DA-08: Base de datos PostgreSQL
+## DA-08: Base de datos MySQL
 
-**Decisión:** PostgreSQL como base de datos de producción; SQLite en memoria para las pruebas automáticas. El acceso es solo mediante Eloquent y migraciones de Laravel, sin SQL propio del motor.
+**Decisión:** MySQL 8 como base de datos de producción y de desarrollo; SQLite en memoria para las pruebas automáticas. El acceso es solo mediante Eloquent y migraciones de Laravel, sin SQL propio del motor.
 
 **Drivers:** DA01.
+
+**Justificación:** MySQL es el motor que ofrecen casi todos los hostings compartidos con PHP, como el hosting institucional, y el equipo ya lo usa en desarrollo con XAMPP. Al acceder solo mediante Eloquent, las mismas migraciones funcionan en MySQL y en SQLite.

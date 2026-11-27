@@ -23,7 +23,7 @@ Rutas (`routes/web.php`), controladores, middleware `VerificarRol`, política `E
 - `Verificacion`: códigos de verificación, QR y búsqueda del documento firmado (CU19).
 
 ### 2.4. Datos
-Modelos Eloquent (`Expediente`, `Movimiento`, `Observacion`, `Respuesta`, `Copia`, `DocumentoAdjunto`, `Administrado`, `Usuario`, `Area`, etc.), migraciones y PostgreSQL.
+Modelos Eloquent (`Expediente`, `Movimiento`, `Observacion`, `Respuesta`, `Copia`, `DocumentoAdjunto`, `Administrado`, `Usuario`, `Area`, etc.), migraciones y MySQL.
 
 ## 3. Inyección de dependencias
 
@@ -37,38 +37,60 @@ Presentación → Control → Servicios → Datos
 
 Ninguna capa llama a una superior. Las vistas no contienen reglas de negocio.
 
-## 5. Diagrama
+## 5. Diagrama de trazabilidad del enfoque
+
+Muestra cómo un caso de uso de ICONIX (ejemplo: CU10 Derivar expediente) llega hasta el código y sus pruebas. Las capas del sistema se ven en la [arquitectura del sistema](arquitectura-inicial.md).
 
 ```mermaid
-flowchart TB
-    subgraph P[Presentación]
-        V[Vistas Blade]
+flowchart LR
+    subgraph ICX[ICONIX · análisis y diseño]
+        direction TB
+        I1["Caso de uso<br/><b>CU10 Derivar expediente</b>"]
+        I2["Diagrama de robustez<br/>boundary · control · entity"]
+        I3["Diagrama de secuencia<br/>y de clases"]
+        I1 --> I2 --> I3
     end
-    subgraph C[Control]
-        CT[Controladores]
-        PO[ExpedientePolicy]
-        MW[Middleware]
+    subgraph SDD[SDD · especificación]
+        direction TB
+        E1["specs/CU10-derivar-expediente.md"]
+        E2["Reglas RN-CU10-nn"]
+        E3["Criterios CA-CU10-nn<br/>Dado · Cuando · Entonces"]
+        E1 --> E2 --> E3
     end
-    subgraph S[Servicios]
-        FE[FlujoExpediente]
-        NO[Notificador]
-        AR[Archivos]
-        VE[Verificacion]
+    subgraph COD[Código en capas]
+        direction TB
+        K1["Vista Blade<br/>formulario de derivación"]
+        K2["DerivacionController::store"]
+        K3["FlujoExpediente::derivar"]
+        K4["Modelos Movimiento y Copia"]
+        K1 --> K2 --> K3 --> K4
     end
-    subgraph D[Datos]
-        MO[Modelos Eloquent]
-        DB[(PostgreSQL)]
+    subgraph PRU[Pruebas automáticas]
+        direction TB
+        T1["tests/Feature<br/>una prueba por criterio"]
+        T2["EspecificacionesTest<br/>controla que cada criterio<br/>tenga su prueba"]
+        T1 --> T2
     end
-    V --> CT
-    MW --> CT
-    CT --> PO
-    CT --> FE
-    CT --> VE
-    FE --> NO
-    FE --> AR
-    FE --> MO
-    VE --> MO
-    MO --> DB
+
+    I2 -- "boundary" --> K1
+    I2 -- "control" --> K3
+    I2 -- "entity" --> K4
+    I3 --> E1
+    E3 -- "cada criterio nombra<br/>su prueba" --> T1
+    T1 -- "verifica" --> K3
+
+    classDef icx fill:#e1d5e7,stroke:#9673a6,color:#2b1a33
+    classDef sdd fill:#d5e8d4,stroke:#82b366,color:#1d3a1b
+    classDef cod fill:#cfe2f7,stroke:#1168bd,color:#0b2545
+    classDef pru fill:#fff2cc,stroke:#d6b656,color:#3a3000
+    class I1,I2,I3 icx
+    class E1,E2,E3 sdd
+    class K1,K2,K3,K4 cod
+    class T1,T2 pru
+    style ICX fill:#f7f2fa,stroke:#9673a6
+    style SDD fill:#f2f9f1,stroke:#82b366
+    style COD fill:#eef5fd,stroke:#1168bd
+    style PRU fill:#fffbea,stroke:#d6b656
 ```
 
 ## 6. Beneficios para el proyecto

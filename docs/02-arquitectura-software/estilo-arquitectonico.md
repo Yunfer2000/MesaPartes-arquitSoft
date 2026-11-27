@@ -4,7 +4,7 @@
 
 **Monolito en capas.** El sistema es una sola aplicación Laravel que se construye, se instala y se ejecuta junta en el hosting del instituto. Por dentro se organiza en cuatro capas: presentación, control, servicios y datos (ver [arquitectura del sistema](arquitectura-inicial.md)).
 
-No expone una API REST ni tiene un frontend separado: las páginas se generan en el servidor con Blade. Los datos se guardan en una única base de datos **PostgreSQL**.
+No expone una API REST ni tiene un frontend separado: las páginas se generan en el servidor con Blade. Los datos se guardan en una única base de datos **MySQL**.
 
 ## 2. Justificación
 
@@ -31,16 +31,44 @@ Aunque el código se organiza por capas (no por módulos), las funciones se agru
 
 ```mermaid
 flowchart LR
-    N[Navegador] -->|HTTP| R[Rutas web.php]
-    R --> M[Middleware: rol, subdominio, throttle]
-    M --> C[Controlador]
-    C -->|valida y autoriza| P[ExpedientePolicy]
-    C --> S[Servicio: FlujoExpediente]
-    S --> E[Modelos Eloquent]
-    E --> BD[(PostgreSQL)]
-    S --> NT[Notificador → correo]
-    C --> V[Vista Blade]
-    V -->|HTML| N
+    N(["Navegador"])
+    subgraph SRV[Servidor del hosting · una sola aplicación Laravel]
+        direction LR
+        R["① Enrutador<br/>Route::domain<br/>público o subdominio"]
+        M["② Middleware<br/>sesión y CSRF<br/>auth · VerificarRol<br/>throttle"]
+        C["③ Controlador<br/>request validate<br/>Gate::authorize"]
+        S["④ Servicio<br/>FlujoExpediente<br/>DB::transaction"]
+        E["⑤ Modelos Eloquent<br/>Movimiento · Expediente"]
+        V["⑥ Vista Blade<br/>HTML listo"]
+        NT["⑤ Notificador"]
+        R --> M --> C --> S --> E
+        S --> NT
+        C --> V
+    end
+    BD[("MySQL 8")]
+    MAIL["Servidor SMTP"]
+    ERR["Aviso en pantalla<br/>ReglaNegocio o error<br/>de validación"]
+
+    N -- "HTTPS GET o POST" --> R
+    E -- "SQL" --> BD
+    NT -- "correo" --> MAIL
+    V -- "HTML" --> N
+    M -. "sin permiso: 403<br/>o redirige al login" .-> N
+    C -. "datos inválidos" .-> ERR
+    S -. "regla incumplida" .-> ERR
+    ERR -. "vuelve al formulario" .-> N
+
+    classDef paso fill:#85bbf0,stroke:#5d8fc4,color:#0b2545
+    classDef neg fill:#1168bd,stroke:#0b4884,color:#ffffff
+    classDef dat fill:#fff2cc,stroke:#d6b656,color:#3a3000
+    classDef ext fill:#8a8a8a,stroke:#6b6b6b,color:#ffffff
+    classDef err fill:#f8d7d3,stroke:#b85450,color:#3d0f0c
+    class R,M,C,V paso
+    class S,NT neg
+    class E,BD dat
+    class N,MAIL ext
+    class ERR err
+    style SRV fill:#f4f8fc,stroke:#1168bd,stroke-width:2px,stroke-dasharray:6 4
 ```
 
 ### 4.1. Descripción del flujo

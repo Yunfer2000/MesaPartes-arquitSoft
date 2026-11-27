@@ -18,10 +18,10 @@ Identificar los componentes del sistema construido y sus responsabilidades.
 | Firma electrónica del sistema | Códigos, QR, verificación y PDF. | `Verificacion`, `PdfController` |
 | Notificaciones | Correos al administrado. | `Notificador`, `AvisoExpediente` |
 | Plazos y pendientes | Semáforo por días hábiles y panel de pendientes. | `PendientesController`, `config/plazos.php` |
-| Consultas y reportes | Búsqueda, reportes PDF y CSV. | `BusquedaController`, `ReporteController` |
+| Consultas y reportes | Búsqueda, reportes en PDF y Excel (.xlsx). | `BusquedaController`, `ReporteController` |
 | Administración | Usuarios, áreas, tipos de documento y auditoría. | `Admin/*Controller`, `RegistroAuditoria` |
 | Seguridad | Roles, permisos por expediente, límites de peticiones y captcha. | `VerificarRol`, `ExpedientePolicy`, `Captcha` |
-| Persistencia | Modelos y tablas. | `app/Models/*`, migraciones, PostgreSQL |
+| Persistencia | Modelos y tablas. | `app/Models/*`, migraciones, MySQL |
 
 ## 3. Interacción entre componentes
 
@@ -30,25 +30,60 @@ Los controladores reciben la petición, validan y consultan a Seguridad. Las ope
 ## 4. Diagrama de componentes
 
 ```mermaid
-flowchart TB
-    PUB[Portal público] --> FL[Flujo del expediente]
-    PUB --> FI[Firma electrónica del sistema]
-    MP[Mesa de Partes] --> FL
-    DE[Derivaciones] --> FL
-    AT[Atención en áreas] --> FL
-    FL --> GD[Gestión documental]
-    FL --> NO[Notificaciones]
-    FL --> PE[(Persistencia)]
+flowchart LR
+    subgraph ENT[Componentes de entrada]
+        direction TB
+        PUB["Portal público<br/><i>CU05 CU06 CU07 CU19</i>"]
+        ACC["Acceso del personal<br/><i>CU02 · bloqueo tras 5 intentos</i>"]
+        MP["Mesa de Partes<br/><i>CU08 CU09 CU17</i>"]
+        DER["Derivaciones<br/><i>CU10 · uno a uno y copias</i>"]
+        AT["Atención en áreas<br/><i>CU11 CU12 CU13</i>"]
+        CR["Consultas y reportes<br/><i>CU14 CU15 · PDF y Excel</i>"]
+        PL["Plazos y pendientes<br/><i>CU18 · semáforo</i>"]
+        AD["Administración<br/><i>CU03 CU04 · auditoría</i>"]
+    end
+
+    subgraph NUC[Núcleo del negocio]
+        direction TB
+        FL["Flujo del expediente<br/><i>FlujoExpediente · ReglaNegocio</i><br/>estados, movimientos y reglas"]
+        FI["Firma electrónica del sistema<br/><i>Verificacion · PdfController</i><br/>código, QR y SHA-256"]
+    end
+
+    subgraph SOP[Componentes de soporte]
+        direction TB
+        GD["Gestión documental<br/><i>Archivos · DocumentoController</i>"]
+        NO["Notificaciones<br/><i>Notificador · AvisoExpediente</i><br/>CU16"]
+        PE[("Persistencia<br/><i>Modelos Eloquent · MySQL 8</i>")]
+    end
+
+    SEG{{"Seguridad transversal<br/>VerificarRol · ExpedientePolicy<br/>throttle · Captcha · CSRF"}}
+    SMTP["Servidor SMTP"]
+
+    PUB & MP & DER & AT -- "operaciones que<br/>cambian el expediente" --> FL
+    PUB -- "verifica" --> FI
+    AT -- "respuesta firmada" --> FI
+    FL --> GD
+    FL --> NO
+    FL --> PE
     FI --> PE
     GD --> PE
-    PL[Plazos y pendientes] --> PE
-    CR[Consultas y reportes] --> PE
-    AD[Administración] --> PE
-    SEG[Seguridad] -.protege.-> MP
-    SEG -.protege.-> DE
-    SEG -.protege.-> AT
-    SEG -.protege.-> PUB
-    NO --> SMTP[Servicio de correo]
+    CR & PL & AD & ACC -- "consultas" --> PE
+    NO --> SMTP
+    SEG -. "protege" .-> ENT
+
+    classDef ent fill:#85bbf0,stroke:#5d8fc4,color:#0b2545
+    classDef nuc fill:#1168bd,stroke:#0b4884,color:#ffffff
+    classDef sop fill:#fff2cc,stroke:#d6b656,color:#3a3000
+    classDef seg fill:#fde9c4,stroke:#d79b00,color:#3d2c00
+    classDef ext fill:#8a8a8a,stroke:#6b6b6b,color:#ffffff
+    class PUB,ACC,MP,DER,AT,CR,PL,AD ent
+    class FL,FI nuc
+    class GD,NO,PE sop
+    class SEG seg
+    class SMTP ext
+    style ENT fill:#eef6fe,stroke:#5d8fc4
+    style NUC fill:#e8f0fa,stroke:#1168bd,stroke-width:2px
+    style SOP fill:#fffbea,stroke:#d6b656
 ```
 
 ## 5. Consideraciones
